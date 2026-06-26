@@ -22,12 +22,17 @@ const Asistencia = () => {
 
   useEffect(() => {
     let isMounted = true;
-    const docenteId = localStorage.getItem('docenteId');
-
     const cargarMisCursos = async () => {
-      if (!docenteId) return;
       try {
-        const res = await axios.get(`http://localhost:8080/api/v1/secciones/docente/${docenteId}`, { headers: getHeaders() });
+        const headers = getHeaders();
+        let docenteId = localStorage.getItem('docenteId');
+        if (!docenteId) {
+          const usuarioId = localStorage.getItem('usuarioId');
+          const resPerfil = await axios.get(`http://localhost:8080/api/v1/docentes/perfil/${usuarioId}`, { headers });
+          docenteId = String(resPerfil.data.idDocente);
+          localStorage.setItem('docenteId', docenteId);
+        }
+        const res = await axios.get(`http://localhost:8080/api/v1/secciones/docente/${docenteId}`, { headers });
         if (isMounted) setSecciones(res.data);
       } catch {
         sileo.error({ title: "Error", description: "No se pudieron cargar tus cursos." });
@@ -35,7 +40,6 @@ const Asistencia = () => {
         if (isMounted) setCargandoSecciones(false);
       }
     };
-
     cargarMisCursos();
     return () => { isMounted = false; };
   }, []);
@@ -115,18 +119,17 @@ const Asistencia = () => {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        {cargandoSecciones ? <span className="text-slate-400">Cargando secciones...</span> : 
-          secciones.length === 0 ? <span className="text-slate-400">No tienes secciones asignadas.</span> :
-          secciones.map(s => (
-            <button 
-              key={s.idSeccion} 
-              onClick={() => seleccionarSeccion(s)}
-              className={`px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-300 shadow-sm ${seccionActual?.idSeccion === s.idSeccion ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'}`}
-            >
-              {s.nombreCurso} (SEC-{s.idSeccion})
-            </button>
-          ))
-        }
+        {cargandoSecciones && <span className="text-slate-400">Cargando secciones...</span>}
+        {!cargandoSecciones && secciones.length === 0 && <span className="text-slate-400">No tienes secciones asignadas.</span>}
+        {!cargandoSecciones && secciones.map(s => (
+          <button
+            key={s.idSeccion}
+            onClick={() => seleccionarSeccion(s)}
+            className={`px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-300 shadow-sm ${seccionActual?.idSeccion === s.idSeccion ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600'}`}
+          >
+            {s.nombreCurso} (SEC-{s.idSeccion})
+          </button>
+        ))}
       </div>
 
       {seccionActual && (
@@ -150,34 +153,33 @@ const Asistencia = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {cargandoAlumnos ? <tr><td colSpan="3" className="text-center py-10 text-slate-400"><i className="fa-solid fa-spinner fa-spin mr-2"></i> Cargando estudiantes...</td></tr> :
-                  alumnos.length === 0 ? <tr><td colSpan="3" className="text-center py-10 text-slate-400">No hay alumnos matriculados en esta sección.</td></tr> :
-                  alumnos.map((a, index) => {
-                    const presente = asistenciaState[a.alumnoId];
-                    return (
-                      <tr key={a.alumnoId} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-4 px-4 font-bold text-slate-400">{index + 1}</td>
-                        <td className="py-4 px-4 font-bold text-slate-700">{a.nombreAlumno}</td>
-                        <td className="py-4 px-4 text-right">
-                          <div className="inline-flex bg-slate-100 p-1 rounded-xl gap-1">
-                            <button 
-                              onClick={() => toggleAsistencia(a.alumnoId, true)}
-                              className={`px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition-all ${presente ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'}`}
-                            >
-                              <Check size={14}/> Presente
-                            </button>
-                            <button 
-                              onClick={() => toggleAsistencia(a.alumnoId, false)}
-                              className={`px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition-all ${!presente ? 'bg-rose-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'}`}
-                            >
-                              <X size={14}/> Falta
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                }
+                {cargandoAlumnos && <tr><td colSpan="3" className="text-center py-10 text-slate-400"><i className="fa-solid fa-spinner fa-spin mr-2"></i> Cargando estudiantes...</td></tr>}
+                {!cargandoAlumnos && alumnos.length === 0 && <tr><td colSpan="3" className="text-center py-10 text-slate-400">No hay alumnos matriculados en esta sección.</td></tr>}
+                {!cargandoAlumnos && alumnos.map((a, index) => {
+                  const presente = asistenciaState[a.alumnoId];
+                  return (
+                    <tr key={a.alumnoId} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-4 px-4 font-bold text-slate-400">{index + 1}</td>
+                      <td className="py-4 px-4 font-bold text-slate-700">{a.nombreAlumno}</td>
+                      <td className="py-4 px-4 text-right">
+                        <div className="inline-flex bg-slate-100 p-1 rounded-xl gap-1">
+                          <button
+                            onClick={() => toggleAsistencia(a.alumnoId, true)}
+                            className={`px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition-all ${presente ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'}`}
+                          >
+                            <Check size={14}/> Presente
+                          </button>
+                          <button
+                            onClick={() => toggleAsistencia(a.alumnoId, false)}
+                            className={`px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition-all ${presente ? 'text-slate-500 hover:bg-slate-200' : 'bg-rose-500 text-white shadow-md'}`}
+                          >
+                            <X size={14}/> Falta
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

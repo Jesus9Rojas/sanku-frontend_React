@@ -26,11 +26,17 @@ const Calificador = () => {
 
   useEffect(() => {
     let isMounted = true;
-    const docenteId = localStorage.getItem('docenteId');
     const cargarMisCursos = async () => {
-      if (!docenteId) return;
       try {
-        const res = await axios.get(`http://localhost:8080/api/v1/secciones/docente/${docenteId}`, { headers: getHeaders() });
+        const headers = getHeaders();
+        let docenteId = localStorage.getItem('docenteId');
+        if (!docenteId) {
+          const usuarioId = localStorage.getItem('usuarioId');
+          const resPerfil = await axios.get(`http://localhost:8080/api/v1/docentes/perfil/${usuarioId}`, { headers });
+          docenteId = String(resPerfil.data.idDocente);
+          localStorage.setItem('docenteId', docenteId);
+        }
+        const res = await axios.get(`http://localhost:8080/api/v1/secciones/docente/${docenteId}`, { headers });
         if (isMounted) setSecciones(res.data);
       } catch {
         sileo.error({ title: "Error", description: "No se pudieron cargar tus cursos." });
