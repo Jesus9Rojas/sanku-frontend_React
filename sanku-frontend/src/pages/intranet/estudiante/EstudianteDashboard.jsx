@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   LayoutGrid, CalendarDays, Monitor, Wallet,
-  FolderOpen, FileText, GraduationCap, Menu, X, Bell, User, ChevronDown,
+  FolderOpen, FileText, GraduationCap, CalendarCheck, Menu, X, Bell, User, ChevronDown,
   LogOut, ChevronLeft, ChevronRight, Search
 } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -109,6 +109,7 @@ const EstudianteDashboard = () => {
     { path: '/estudiante/horario', Icon: CalendarDays, label: 'Horario' },
     { path: '/estudiante/cursos', Icon: Monitor, label: 'Mis Cursos' },
     { path: '/estudiante/calificaciones', Icon: GraduationCap, label: 'Calificaciones' },
+    { path: '/estudiante/asistencia', Icon: CalendarCheck, label: 'Mi Asistencia' },
     { path: '/estudiante/finanzas', Icon: Wallet, label: 'Finanzas' },
     { path: '/estudiante/tramites', Icon: FolderOpen, label: 'Trámites' },
     { path: '/estudiante/matricula', Icon: FileText, label: 'Matrícula en Línea' }

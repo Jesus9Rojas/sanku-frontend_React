@@ -44,6 +44,7 @@ import FinanzasEstudiante from './pages/intranet/estudiante/FinanzasEstudiante';
 import TramitesSae from './pages/intranet/estudiante/TramitesSae';
 import MatriculaEnLinea from './pages/intranet/estudiante/MatriculaEnLinea';
 import MisCalificaciones from './pages/intranet/estudiante/MisCalificaciones';
+import MiAsistencia from './pages/intranet/estudiante/MiAsistencia';
 import PerfilEstudiante from './pages/intranet/estudiante/PerfilEstudiante';
 
 const LayoutPublico = ({ children }) => {
@@ -115,6 +116,7 @@ function App() {
               <Route path="tramites" element={<TramitesSae />} />
               <Route path="matricula" element={<MatriculaEnLinea />} />
               <Route path="calificaciones" element={<MisCalificaciones />} />
+              <Route path="asistencia" element={<MiAsistencia />} />
               <Route path="perfil" element={<PerfilEstudiante />} />
             </Route>
           </Routes>
