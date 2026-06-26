@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { 
-  Presentation, TrendingUp, Wallet, Clock, 
-  BookOpen, Paperclip, Headset, Briefcase, MapPin, Laptop, LayoutGrid 
+import {
+  Presentation, TrendingUp, Wallet, Clock,
+  BookOpen, GraduationCap, Headset, Briefcase, MapPin, Laptop, LayoutGrid
 } from 'lucide-react';
 import { sileo } from 'sileo';
+
+const getCicloActual = () => {
+  const now = new Date();
+  return now.getMonth() < 6 ? `${now.getFullYear()}-I` : `${now.getFullYear()}-II`;
+};
 
 const PanelEstudiante = () => {
   const navigate = useNavigate();
@@ -31,7 +36,7 @@ const PanelEstudiante = () => {
           axios.get(`http://localhost:8080/api/v1/cuotas/alumno/${alumnoId}`, { headers }).catch(() => ({ data: [] })),
           axios.get(`http://localhost:8080/api/v1/carreras`, { headers }).catch(() => ({ data: [] })),
           axios.get(`http://localhost:8080/api/v1/cursos`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`http://localhost:8080/api/v1/secciones/ciclo/2026-I`, { headers }).catch(() => ({ data: [] }))
+          axios.get(`http://localhost:8080/api/v1/secciones/ciclo/${getCicloActual()}`, { headers }).catch(() => ({ data: [] }))
         ]);
 
         if (!isMounted) return;
@@ -45,8 +50,8 @@ const PanelEstudiante = () => {
         setDeudaPendiente(totalDeuda);
 
         const idCarreraReal = resCarreras.data.find(c => c.nombre === miCarrera)?.idCarrera;
-        const idsCursosValidos = resCursos.data.filter(c => c.carreraId === idCarreraReal).map(c => c.idCurso);
-        const misSecciones = resSecciones.data.filter(s => idsCursosValidos.includes(s.cursoId));
+        const idsCursosValidos = new Set(resCursos.data.filter(c => c.carreraId === idCarreraReal).map(c => c.idCurso));
+        const misSecciones = resSecciones.data.filter(s => idsCursosValidos.has(s.cursoId));
 
         let diaActual = new Date().getDay();
         diaActual = diaActual === 0 ? 7 : diaActual; 
@@ -107,8 +112,11 @@ const PanelEstudiante = () => {
             <button onClick={() => navigate('/estudiante/horario')} className="text-xs font-bold text-blue-600 hover:text-blue-800">Ver horario</button>
           </div>
           <div className="p-6 flex-1 bg-slate-50/50 rounded-b-3xl">
-            {cargando ? <p className="text-center text-slate-400 py-10">Cargando agenda...</p> : 
-              clasesHoy.length === 0 ? <p className="text-center text-slate-400 py-10 font-medium">¡Día libre! No tienes clases programadas para hoy.</p> :
+            {cargando && <p className="text-center text-slate-400 py-10">Cargando agenda...</p>}
+            {!cargando && clasesHoy.length === 0 && (
+              <p className="text-center text-slate-400 py-10 font-medium">¡Día libre! No tienes clases programadas para hoy.</p>
+            )}
+            {!cargando && clasesHoy.length > 0 && (
               <div className="space-y-4">
                 {clasesHoy.map(s => (
                   <div key={s.idSeccion} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 hover:border-blue-300 transition-colors">
@@ -126,29 +134,29 @@ const PanelEstudiante = () => {
                   </div>
                 ))}
               </div>
-            }
+            )}
           </div>
         </div>
 
         <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col">
           <h3 className="font-bold text-slate-800 p-6 border-b border-slate-100 flex items-center gap-2"><LayoutGrid className="text-blue-500"/> Accesos Rápidos</h3>
           <div className="p-6 grid grid-cols-2 gap-4">
-            <div className="bg-slate-50 hover:bg-blue-50 p-4 rounded-2xl border border-slate-200 hover:border-blue-200 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-colors group">
+            <button type="button" onClick={() => navigate('/estudiante/cursos')} className="bg-slate-50 hover:bg-blue-50 p-4 rounded-2xl border border-slate-200 hover:border-blue-200 flex flex-col items-center justify-center text-center gap-3 transition-colors group">
               <BookOpen size={24} className="text-sky-500 group-hover:scale-110 transition-transform"/>
-              <span className="text-xs font-bold text-slate-600">Biblioteca Virtual</span>
-            </div>
-            <div className="bg-slate-50 hover:bg-indigo-50 p-4 rounded-2xl border border-slate-200 hover:border-indigo-200 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-colors group">
-              <Paperclip size={24} className="text-indigo-500 group-hover:scale-110 transition-transform"/>
-              <span className="text-xs font-bold text-slate-600">Sílabos</span>
-            </div>
-            <div className="bg-slate-50 hover:bg-emerald-50 p-4 rounded-2xl border border-slate-200 hover:border-emerald-200 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-colors group">
+              <span className="text-xs font-bold text-slate-600">Mis Cursos</span>
+            </button>
+            <button type="button" onClick={() => navigate('/estudiante/calificaciones')} className="bg-slate-50 hover:bg-indigo-50 p-4 rounded-2xl border border-slate-200 hover:border-indigo-200 flex flex-col items-center justify-center text-center gap-3 transition-colors group">
+              <GraduationCap size={24} className="text-indigo-500 group-hover:scale-110 transition-transform"/>
+              <span className="text-xs font-bold text-slate-600">Calificaciones</span>
+            </button>
+            <button type="button" onClick={() => navigate('/estudiante/tramites')} className="bg-slate-50 hover:bg-emerald-50 p-4 rounded-2xl border border-slate-200 hover:border-emerald-200 flex flex-col items-center justify-center text-center gap-3 transition-colors group">
               <Headset size={24} className="text-emerald-500 group-hover:scale-110 transition-transform"/>
-              <span className="text-xs font-bold text-slate-600">Soporte TI</span>
-            </div>
-            <div className="bg-slate-50 hover:bg-amber-50 p-4 rounded-2xl border border-slate-200 hover:border-amber-200 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-colors group">
+              <span className="text-xs font-bold text-slate-600">Soporte / SAE</span>
+            </button>
+            <button type="button" onClick={() => navigate('/estudiante/finanzas')} className="bg-slate-50 hover:bg-amber-50 p-4 rounded-2xl border border-slate-200 hover:border-amber-200 flex flex-col items-center justify-center text-center gap-3 transition-colors group">
               <Briefcase size={24} className="text-amber-500 group-hover:scale-110 transition-transform"/>
-              <span className="text-xs font-bold text-slate-600">Bolsa Laboral</span>
-            </div>
+              <span className="text-xs font-bold text-slate-600">Mis Pagos</span>
+            </button>
           </div>
         </div>
       </div>
