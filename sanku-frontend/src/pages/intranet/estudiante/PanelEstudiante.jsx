@@ -1,0 +1,159 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { 
+  Presentation, TrendingUp, Wallet, Clock, 
+  BookOpen, Paperclip, Headset, Briefcase, MapPin, Laptop, LayoutGrid 
+} from 'lucide-react';
+import { sileo } from 'sileo';
+
+const PanelEstudiante = () => {
+  const navigate = useNavigate();
+  const [perfil, setPerfil] = useState(null);
+  const [clasesHoy, setClasesHoy] = useState([]);
+  const [deudaPendiente, setDeudaPendiente] = useState(0);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const usuarioId = localStorage.getItem("usuarioId");
+    
+    const fetchInicial = async () => {
+      try {
+        const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
+        
+        const resPerfil = await axios.get(`http://localhost:8080/api/v1/alumnos/perfil/${usuarioId}`, { headers });
+        const dataPerfil = resPerfil.data;
+        const alumnoId = dataPerfil.idAlumno;
+        const miCarrera = dataPerfil.nombreCarrera;
+
+        const [resPagos, resCarreras, resCursos, resSecciones] = await Promise.all([
+          axios.get(`http://localhost:8080/api/v1/cuotas/alumno/${alumnoId}`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`http://localhost:8080/api/v1/carreras`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`http://localhost:8080/api/v1/cursos`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`http://localhost:8080/api/v1/secciones/ciclo/2026-I`, { headers }).catch(() => ({ data: [] }))
+        ]);
+
+        if (!isMounted) return;
+
+        setPerfil(dataPerfil);
+
+        let totalDeuda = 0;
+        resPagos.data.forEach(c => {
+          if (c.estado === 'PENDIENTE' || c.estado === 'VENCIDO') totalDeuda += c.montoTotal;
+        });
+        setDeudaPendiente(totalDeuda);
+
+        const idCarreraReal = resCarreras.data.find(c => c.nombre === miCarrera)?.idCarrera;
+        const idsCursosValidos = resCursos.data.filter(c => c.carreraId === idCarreraReal).map(c => c.idCurso);
+        const misSecciones = resSecciones.data.filter(s => idsCursosValidos.includes(s.cursoId));
+
+        let diaActual = new Date().getDay();
+        diaActual = diaActual === 0 ? 7 : diaActual; 
+        setClasesHoy(misSecciones.filter(s => s.diaSemana === diaActual));
+
+      } catch (error) {
+        console.error(error);
+        sileo.error({ title: "Error", description: "No se pudieron cargar los datos del panel." });
+      } finally {
+        if (isMounted) setCargando(false);
+      }
+    };
+
+    fetchInicial();
+    return () => { isMounted = false; };
+  }, []);
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-black text-slate-800">Resumen Académico</h2>
+          <p className="text-slate-500">Un vistazo rápido de tu actividad y progreso.</p>
+        </div>
+        <span className="bg-sky-50 text-sky-700 px-4 py-2 rounded-xl font-bold border border-sky-100 shadow-sm flex items-center gap-2 text-sm">
+          <Presentation size={16} /> Modalidad Presencial
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
+          <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex justify-center items-center"><Presentation size={24}/></div>
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Clases Hoy</p>
+            <h3 className="text-2xl font-black text-slate-800">{cargando ? '...' : clasesHoy.length}</h3>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
+          <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex justify-center items-center"><TrendingUp size={24}/></div>
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Promedio Actual</p>
+            <h3 className="text-2xl font-black text-slate-800">{cargando ? '...' : perfil?.promedioHistorico || '0.00'}</h3>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl shadow-sm border-l-4 border-l-rose-500 border-slate-200 flex items-center gap-5">
+          <div className="w-14 h-14 bg-rose-50 text-rose-500 rounded-2xl flex justify-center items-center"><Wallet size={24}/></div>
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Pago Pendiente</p>
+            <h3 className="text-2xl font-black text-rose-600">S/ {cargando ? '...' : deudaPendiente.toFixed(2)}</h3>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3 bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+          <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+            <h3 className="font-bold text-slate-800 flex items-center gap-2"><Clock className="text-blue-500"/> Tu Agenda de Hoy</h3>
+            <button onClick={() => navigate('/estudiante/horario')} className="text-xs font-bold text-blue-600 hover:text-blue-800">Ver horario</button>
+          </div>
+          <div className="p-6 flex-1 bg-slate-50/50 rounded-b-3xl">
+            {cargando ? <p className="text-center text-slate-400 py-10">Cargando agenda...</p> : 
+              clasesHoy.length === 0 ? <p className="text-center text-slate-400 py-10 font-medium">¡Día libre! No tienes clases programadas para hoy.</p> :
+              <div className="space-y-4">
+                {clasesHoy.map(s => (
+                  <div key={s.idSeccion} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 hover:border-blue-300 transition-colors">
+                    <div className="bg-slate-50 px-3 py-2 rounded-xl text-center shrink-0 border border-slate-100">
+                      <p className="font-black text-blue-600">{s.horaInicio?.substring(0,5)}</p>
+                      <p className="text-[10px] font-bold text-slate-400">a {s.horaFin?.substring(0,5)}</p>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-slate-800 leading-tight">{s.nombreCurso}</h4>
+                      <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-2">
+                        {s.modalidad === 'VIRTUAL' ? <Laptop size={12}/> : <MapPin size={12}/>} {s.modalidad} | Prof. {s.nombreDocente.split(" ")[0]}
+                      </p>
+                    </div>
+                    <button onClick={() => navigate('/estudiante/cursos')} className="text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Ver Curso</button>
+                  </div>
+                ))}
+              </div>
+            }
+          </div>
+        </div>
+
+        <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+          <h3 className="font-bold text-slate-800 p-6 border-b border-slate-100 flex items-center gap-2"><LayoutGrid className="text-blue-500"/> Accesos Rápidos</h3>
+          <div className="p-6 grid grid-cols-2 gap-4">
+            <div className="bg-slate-50 hover:bg-blue-50 p-4 rounded-2xl border border-slate-200 hover:border-blue-200 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-colors group">
+              <BookOpen size={24} className="text-sky-500 group-hover:scale-110 transition-transform"/>
+              <span className="text-xs font-bold text-slate-600">Biblioteca Virtual</span>
+            </div>
+            <div className="bg-slate-50 hover:bg-indigo-50 p-4 rounded-2xl border border-slate-200 hover:border-indigo-200 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-colors group">
+              <Paperclip size={24} className="text-indigo-500 group-hover:scale-110 transition-transform"/>
+              <span className="text-xs font-bold text-slate-600">Sílabos</span>
+            </div>
+            <div className="bg-slate-50 hover:bg-emerald-50 p-4 rounded-2xl border border-slate-200 hover:border-emerald-200 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-colors group">
+              <Headset size={24} className="text-emerald-500 group-hover:scale-110 transition-transform"/>
+              <span className="text-xs font-bold text-slate-600">Soporte TI</span>
+            </div>
+            <div className="bg-slate-50 hover:bg-amber-50 p-4 rounded-2xl border border-slate-200 hover:border-amber-200 flex flex-col items-center justify-center text-center gap-3 cursor-pointer transition-colors group">
+              <Briefcase size={24} className="text-amber-500 group-hover:scale-110 transition-transform"/>
+              <span className="text-xs font-bold text-slate-600">Bolsa Laboral</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PanelEstudiante;
