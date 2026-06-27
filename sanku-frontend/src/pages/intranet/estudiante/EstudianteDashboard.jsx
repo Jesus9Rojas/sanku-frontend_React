@@ -4,7 +4,7 @@ import axios from 'axios';
 import { 
   LayoutGrid, CalendarDays, Monitor, Wallet, 
   FolderOpen, FileText, Menu, X, Bell, User, ChevronDown, 
-  LogOut, ChevronLeft, ChevronRight, Search 
+  LogOut, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
@@ -71,6 +71,8 @@ const EstudianteDashboard = () => {
       if (intervalId) clearInterval(intervalId); 
     };
   }, [usuarioId, getHeaders, recargarNotificaciones]);
+
+    const fechaActual = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   const marcarComoLeida = (idSolicitud, event) => {
     if (event) event.stopPropagation();
@@ -147,9 +149,8 @@ const EstudianteDashboard = () => {
         <header className="bg-transparent h-24 px-6 md:px-8 flex justify-between items-center z-10 pt-4">
           <button className="md:hidden text-slate-500 bg-white p-2 rounded-xl shadow-sm" onClick={() => setSidebarOpen(true)}><Menu size={20} /></button>
           <div className="hidden md:flex items-center gap-6 ml-4">
-            <div className="flex items-center bg-white border border-slate-200 rounded-2xl px-4 py-2.5 w-80 shadow-sm focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-300">
-              <Search size={18} className="text-slate-400 mr-3" />
-              <input type="text" placeholder="Buscar..." className="bg-transparent outline-none text-sm w-full text-slate-700 placeholder-slate-400" />
+                        <div className="text-xs font-semibold text-slate-500 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-sm capitalize">
+              {fechaActual}
             </div>
           </div>
 
