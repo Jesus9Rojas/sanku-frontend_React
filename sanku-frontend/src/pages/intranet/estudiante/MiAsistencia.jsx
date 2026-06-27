@@ -16,11 +16,10 @@ const getCicloAnterior = () => {
 
 const CursoAsistenciaCard = ({ nombreCurso, registros }) => {
   const [expandido, setExpandido] = useState(true);
-
   const presentes = registros.filter(r => r.presente).length;
   const total = registros.length;
   const porcentaje = total > 0 ? Math.round((presentes / total) * 100) : 0;
-
+  
   const colorBarra = porcentaje >= 75 ? 'bg-emerald-500' : porcentaje >= 50 ? 'bg-amber-400' : 'bg-rose-500';
   const colorTexto = porcentaje >= 75 ? 'text-emerald-600' : porcentaje >= 50 ? 'text-amber-500' : 'text-rose-500';
 
@@ -40,6 +39,7 @@ const CursoAsistenciaCard = ({ nombreCurso, registros }) => {
             <p className="text-xs text-slate-400 font-semibold">{total} clase{total !== 1 ? 's' : ''} registrada{total !== 1 ? 's' : ''}</p>
           </div>
         </div>
+
         <div className="flex items-center gap-6">
           <div className="text-right hidden sm:block">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Asistencia</p>
@@ -71,7 +71,7 @@ const CursoAsistenciaCard = ({ nombreCurso, registros }) => {
               {registros.map((r, i) => (
                 <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                   <td className="py-3 px-6 text-sm font-semibold text-slate-700">
-                    {r.fecha ? new Date(r.fecha + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                    {r.fecha ? new Date(r.fecha + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) : '---'}
                   </td>
                   <td className="py-3 px-4 text-center">
                     {r.presente ? (
@@ -97,39 +97,47 @@ const CursoAsistenciaCard = ({ nombreCurso, registros }) => {
 const MiAsistencia = () => {
   const cicloActual = getCicloActual();
   const cicloAnterior = getCicloAnterior();
-
   const [cicloSeleccionado, setCicloSeleccionado] = useState(cicloActual);
   const [todasLasAsistencias, setTodasLasAsistencias] = useState([]);
   const [cargando, setCargando] = useState(true);
-
+  
   const alumnoId = localStorage.getItem('alumnoId');
   const getHeaders = useCallback(() => ({ Authorization: `Bearer ${localStorage.getItem('token')}` }), []);
 
   useEffect(() => {
-    if (!alumnoId) return;
     let isMounted = true;
-    setCargando(true);
+    
+    const fetchAsistencias = async () => {
+      if (!alumnoId) {
+        if (isMounted) setCargando(false);
+        return;
+      }
+      try {
+        const res = await axios.get(`http://localhost:8080/api/v1/asistencias/alumno/${alumnoId}`, { headers: getHeaders() });
+        if (isMounted) setTodasLasAsistencias(res.data);
+      } catch (error) {
+        console.error(error);
+        sileo.error({ title: 'Error', description: 'No se pudo cargar el historial de asistencia.' });
+      } finally {
+        if (isMounted) setCargando(false);
+      }
+    };
 
-    axios
-      .get(`http://localhost:8080/api/v1/asistencias/alumno/${alumnoId}`, { headers: getHeaders() })
-      .then(res => { if (isMounted) setTodasLasAsistencias(res.data); })
-      .catch(() => sileo.error({ title: 'Error', description: 'No se pudo cargar el historial de asistencia.' }))
-      .finally(() => { if (isMounted) setCargando(false); });
-
+    fetchAsistencias();
     return () => { isMounted = false; };
   }, [alumnoId, getHeaders]);
 
   const filtradas = todasLasAsistencias.filter(r => r.cicloAcademico === cicloSeleccionado);
-
+  
   const porCurso = filtradas.reduce((acc, r) => {
     const key = r.nombreCurso || 'Sin curso';
     if (!acc[key]) acc[key] = [];
     acc[key].push(r);
     return acc;
   }, {});
-
+  
   const cursos = Object.entries(porCurso);
-
+  
   const totalPresentes = filtradas.filter(r => r.presente).length;
   const totalClases = filtradas.length;
   const porcentajeGlobal = totalClases > 0 ? Math.round((totalPresentes / totalClases) * 100) : null;
@@ -141,7 +149,7 @@ const MiAsistencia = () => {
           <h2 className="text-2xl font-black text-slate-800">Mi Asistencia</h2>
           <p className="text-slate-500 text-sm">Ciclo Académico: <strong className="text-blue-600">{cicloSeleccionado}</strong></p>
         </div>
-
+        
         {porcentajeGlobal !== null && (
           <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 flex items-center gap-3 shadow-sm">
             <div className="w-10 h-10 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center">
@@ -194,7 +202,7 @@ const MiAsistencia = () => {
       {!cargando && cursos.length > 0 && (
         <div className="space-y-4">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">
-            {cursos.length} curso{cursos.length !== 1 ? 's' : ''} — {totalClases} clase{totalClases !== 1 ? 's' : ''} registrada{totalClases !== 1 ? 's' : ''}
+            {cursos.length} curso{cursos.length !== 1 ? 's' : ''} • {totalClases} clase{totalClases !== 1 ? 's' : ''} registrada{totalClases !== 1 ? 's' : ''}
           </p>
           {cursos.map(([nombreCurso, registros]) => (
             <CursoAsistenciaCard key={nombreCurso} nombreCurso={nombreCurso} registros={registros} />

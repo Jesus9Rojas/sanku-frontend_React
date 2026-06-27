@@ -30,8 +30,8 @@ const notaBadge = (nota) => {
 
 const CursoCalificacionCard = ({ nombreCurso, notas }) => {
   const [expandido, setExpandido] = useState(true);
-
   const pesoTotal = notas.reduce((s, n) => s + (n.pesoPorcentaje || 0), 0);
+  
   const promedioPonderado = pesoTotal > 0
     ? notas.reduce((s, n) => s + (Number(n.nota) * (n.pesoPorcentaje || 0)), 0) / pesoTotal
     : null;
@@ -49,9 +49,10 @@ const CursoCalificacionCard = ({ nombreCurso, notas }) => {
           </div>
           <div className="text-left">
             <h3 className="font-black text-slate-800">{nombreCurso}</h3>
-            <p className="text-xs text-slate-400 font-semibold">{notas.length} evaluacion{notas.length !== 1 ? 'es' : ''} calificada{notas.length !== 1 ? 's' : ''}</p>
+            <p className="text-xs text-slate-400 font-semibold">{notas.length} evaluación{notas.length !== 1 ? 'es' : ''} calificada{notas.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
+
         <div className="flex items-center gap-4">
           {promedioPonderado !== null && (
             <div className="text-right">
@@ -77,21 +78,21 @@ const CursoCalificacionCard = ({ nombreCurso, notas }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {notas.map(n => (
-                <tr key={n.idNota} className="hover:bg-slate-50/50 transition-colors">
+              {notas.map((n, i) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                   <td className="py-3 px-6 font-semibold text-slate-800 text-sm">{n.nombreExamen}</td>
                   <td className="py-3 px-4 text-center">
                     <span className="bg-indigo-50 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-lg">
-                      {n.pesoPorcentaje ?? '—'}%
+                      {n.pesoPorcentaje ?? '---'}%
                     </span>
                   </td>
                   <td className="py-3 px-4 text-center">
                     <span className={`text-sm font-black px-3 py-1 rounded-xl border ${notaBadge(n.nota)}`}>
-                      {n.nota !== null && n.nota !== undefined ? Number(n.nota).toFixed(2) : '—'}
+                      {n.nota !== null && n.nota !== undefined ? Number(n.nota).toFixed(2) : '---'}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-xs text-slate-400 font-medium hidden sm:table-cell">
-                    {n.fechaExamen ? new Date(n.fechaExamen + 'T00:00:00').toLocaleDateString('es-ES') : '—'}
+                    {n.fechaExamen ? new Date(n.fechaExamen + 'T00:00:00').toLocaleDateString('es-ES') : '---'}
                   </td>
                 </tr>
               ))}
@@ -106,39 +107,47 @@ const CursoCalificacionCard = ({ nombreCurso, notas }) => {
 const MisCalificaciones = () => {
   const cicloActual = getCicloActual();
   const cicloAnterior = getCicloAnterior();
-
   const [cicloSeleccionado, setCicloSeleccionado] = useState(cicloActual);
   const [todasLasNotas, setTodasLasNotas] = useState([]);
   const [cargando, setCargando] = useState(true);
-
+  
   const alumnoId = localStorage.getItem('alumnoId');
   const getHeaders = useCallback(() => ({ Authorization: `Bearer ${localStorage.getItem('token')}` }), []);
 
   useEffect(() => {
-    if (!alumnoId) return;
     let isMounted = true;
-    setCargando(true);
+    
+    const fetchNotas = async () => {
+      if (!alumnoId) {
+        if (isMounted) setCargando(false);
+        return;
+      }
+      try {
+        const res = await axios.get(`http://localhost:8080/api/v1/notas/alumno/${alumnoId}`, { headers: getHeaders() });
+        if (isMounted) setTodasLasNotas(res.data);
+      } catch (error) {
+        console.error(error);
+        sileo.error({ title: 'Error', description: 'No se pudieron cargar las calificaciones.' });
+      } finally {
+        if (isMounted) setCargando(false);
+      }
+    };
 
-    axios
-      .get(`http://localhost:8080/api/v1/notas/alumno/${alumnoId}`, { headers: getHeaders() })
-      .then(res => { if (isMounted) setTodasLasNotas(res.data); })
-      .catch(() => sileo.error({ title: 'Error', description: 'No se pudieron cargar las calificaciones.' }))
-      .finally(() => { if (isMounted) setCargando(false); });
-
+    fetchNotas();
     return () => { isMounted = false; };
   }, [alumnoId, getHeaders]);
 
   const notasFiltradas = todasLasNotas.filter(n => n.cicloAcademico === cicloSeleccionado);
-
+  
   const porCurso = notasFiltradas.reduce((acc, n) => {
     const key = n.nombreCurso || 'Sin curso';
     if (!acc[key]) acc[key] = [];
     acc[key].push(n);
     return acc;
   }, {});
-
+  
   const cursos = Object.entries(porCurso);
-
+  
   const promedioGeneral = (() => {
     if (notasFiltradas.length === 0) return null;
     const pesoTotal = notasFiltradas.reduce((s, n) => s + (n.pesoPorcentaje || 0), 0);
@@ -153,7 +162,7 @@ const MisCalificaciones = () => {
           <h2 className="text-2xl font-black text-slate-800">Mis Calificaciones</h2>
           <p className="text-slate-500 text-sm">Ciclo Académico: <strong className="text-blue-600">{cicloSeleccionado}</strong></p>
         </div>
-
+        
         {promedioGeneral !== null && (
           <div className="bg-white border border-slate-200 rounded-2xl px-5 py-3 flex items-center gap-3 shadow-sm">
             <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
