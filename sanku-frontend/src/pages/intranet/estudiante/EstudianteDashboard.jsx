@@ -4,7 +4,7 @@ import axios from 'axios';
 import { 
   LayoutGrid, CalendarDays, Monitor, Wallet, 
   FolderOpen, FileText, Menu, X, Bell, User, ChevronDown, 
-  LogOut, ChevronLeft, ChevronRight
+  LogOut, ChevronLeft, ChevronRight, Search 
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
@@ -110,6 +110,8 @@ const EstudianteDashboard = () => {
     { path: '/estudiante', Icon: LayoutGrid, label: 'Panel' },
     { path: '/estudiante/horario', Icon: CalendarDays, label: 'Horario' },
     { path: '/estudiante/cursos', Icon: Monitor, label: 'Mis Cursos' },
+    { path: '/estudiante/calificaciones', Icon: GraduationCap, label: 'Calificaciones' },
+    { path: '/estudiante/asistencia', Icon: CalendarCheck, label: 'Mi Asistencia' },
     { path: '/estudiante/finanzas', Icon: Wallet, label: 'Finanzas' },
     { path: '/estudiante/tramites', Icon: FolderOpen, label: 'Trámites' },
     { path: '/estudiante/matricula', Icon: FileText, label: 'Matrícula en Línea' }
