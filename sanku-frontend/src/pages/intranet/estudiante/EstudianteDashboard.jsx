@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { 
-  LayoutGrid, CalendarDays, Monitor, Wallet, 
-  FolderOpen, FileText, Menu, X, Bell, User, ChevronDown, 
-  LogOut, ChevronLeft, ChevronRight, Search 
+import {
+  LayoutGrid, CalendarDays, Monitor, Wallet,
+  FolderOpen, FileText, GraduationCap, CalendarCheck, Menu, X, Bell, User, ChevronDown,
+  LogOut, ChevronLeft, ChevronRight, 
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
