@@ -5,7 +5,17 @@ import {
   ChevronDown, ChevronUp, Plus, Megaphone, Trash2, Save, Paperclip, ClipboardList
 } from 'lucide-react';
 import { sileo } from 'sileo';
+import Swal from 'sweetalert2';
 import { API_BASE, authHeaders, descargarArchivo } from '../../../utils/api';
+
+const customSwal = Swal.mixin({
+  customClass: {
+    popup: 'rounded-3xl border-0 shadow-2xl',
+    confirmButton: 'bg-rose-500 hover:bg-rose-600 text-white font-bold py-2.5 px-6 rounded-xl border-0 mx-2 transition-colors',
+    cancelButton: 'bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-6 rounded-xl border-0 mx-2 transition-colors'
+  },
+  buttonsStyling: false
+});
 
 const SIN_MODULO = { idModulo: null, titulo: 'Sin módulo asignado', descripcion: 'Material y evaluaciones aún no agrupados en un módulo.' };
 
@@ -153,7 +163,7 @@ const EntregasYNotas = ({ evaluacion, seccion, onCerrar }) => {
   );
 };
 
-const ModuloPanel = ({ modulo, materiales, evaluaciones, seccion, onMaterialSubido, onEvaluacionCreada }) => {
+const ModuloPanel = ({ modulo, materiales, evaluaciones, seccion, onMaterialSubido, onEvaluacionCreada, onMaterialEliminado, onEvaluacionEliminada }) => {
   const [formMaterialAbierto, setFormMaterialAbierto] = useState(false);
   const [tituloMaterial, setTituloMaterial] = useState('');
   const [archivoMaterial, setArchivoMaterial] = useState(null);
@@ -211,6 +221,50 @@ const ModuloPanel = ({ modulo, materiales, evaluaciones, seccion, onMaterialSubi
     }
   };
 
+  const eliminarMaterial = async (material) => {
+    const result = await customSwal.fire({
+      title: '¿Eliminar este material?',
+      text: `"${material.titulo}" se eliminará junto con su archivo. Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!result.isConfirmed) return;
+
+    try {
+      await axios.delete(`${API_BASE}/materiales/${material.idMaterial}`, { headers: authHeaders() });
+      onMaterialEliminado(material.idMaterial);
+      sileo.success({ title: "Eliminado", description: `"${material.titulo}" fue eliminado.` });
+    } catch (error) {
+      sileo.error({ title: "Error", description: error.response?.data?.message || "No se pudo eliminar el material." });
+    }
+  };
+
+  const eliminarEvaluacion = async (evaluacion) => {
+    const result = await customSwal.fire({
+      title: '¿Eliminar esta evaluación?',
+      text: `"${evaluacion.nombreExamen}" se eliminará. Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!result.isConfirmed) return;
+
+    try {
+      await axios.delete(`${API_BASE}/evaluaciones/${evaluacion.idEvaluacion}`, { headers: authHeaders() });
+      if (evaluacionRevisar?.idEvaluacion === evaluacion.idEvaluacion) setEvaluacionRevisar(null);
+      onEvaluacionEliminada(evaluacion.idEvaluacion);
+      sileo.success({ title: "Eliminada", description: `"${evaluacion.nombreExamen}" fue eliminada.` });
+    } catch (error) {
+      const mensaje = error.response?.status === 400
+        ? "No se puede eliminar: ya tiene notas o entregas registradas."
+        : (error.response?.data?.message || "No se pudo eliminar la evaluación.");
+      sileo.error({ title: "Error", description: mensaje });
+    }
+  };
+
   return (
     <div className="space-y-5">
       {modulo.descripcion && <p className="text-slate-500 text-sm">{modulo.descripcion}</p>}
@@ -256,8 +310,11 @@ const ModuloPanel = ({ modulo, materiales, evaluaciones, seccion, onMaterialSubi
                 <p className="font-semibold text-slate-800 text-sm truncate">{m.titulo}</p>
                 <p className="text-xs text-slate-400">{new Date(m.fechaSubida).toLocaleDateString('es-ES')}</p>
               </div>
-              <button onClick={() => descargarArchivo(`/materiales/${m.idMaterial}/archivo`, m.titulo)} className="w-8 h-8 bg-indigo-50 hover:bg-indigo-500 text-indigo-600 hover:text-white rounded-lg flex items-center justify-center transition-colors shrink-0">
+              <button onClick={() => descargarArchivo(`/materiales/${m.idMaterial}/archivo`, m.titulo)} className="w-8 h-8 bg-indigo-50 hover:bg-indigo-500 text-indigo-600 hover:text-white rounded-lg flex items-center justify-center transition-colors shrink-0" title="Descargar">
                 <CloudDownload size={16}/>
+              </button>
+              <button onClick={() => eliminarMaterial(m)} className="w-8 h-8 bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white rounded-lg flex items-center justify-center transition-colors shrink-0" title="Eliminar material">
+                <Trash2 size={16}/>
               </button>
             </div>
           ))}
@@ -303,13 +360,21 @@ const ModuloPanel = ({ modulo, materiales, evaluaciones, seccion, onMaterialSubi
         <div className="space-y-2">
           {evaluaciones.map(ev => (
             <div key={ev.idEvaluacion}>
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => setEvaluacionRevisar(evaluacionRevisar?.idEvaluacion === ev.idEvaluacion ? null : ev)}
-                className={`w-full text-left bg-white border rounded-xl p-3 flex items-center justify-between transition-colors ${evaluacionRevisar?.idEvaluacion === ev.idEvaluacion ? 'border-indigo-400 bg-indigo-50/50' : 'border-slate-200 hover:border-indigo-300'}`}
+                onKeyDown={e => { if (e.key === 'Enter') setEvaluacionRevisar(evaluacionRevisar?.idEvaluacion === ev.idEvaluacion ? null : ev); }}
+                className={`w-full text-left bg-white border rounded-xl p-3 flex items-center justify-between gap-3 transition-colors cursor-pointer ${evaluacionRevisar?.idEvaluacion === ev.idEvaluacion ? 'border-indigo-400 bg-indigo-50/50' : 'border-slate-200 hover:border-indigo-300'}`}
               >
                 <span className="font-semibold text-slate-800 text-sm">{ev.nombreExamen} <span className="text-slate-400 font-normal">({ev.pesoPorcentaje}%)</span></span>
-                <span className="text-xs text-slate-400">{new Date(ev.fechaExamen + 'T00:00:00').toLocaleDateString('es-ES')}</span>
-              </button>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="text-xs text-slate-400">{new Date(ev.fechaExamen + 'T00:00:00').toLocaleDateString('es-ES')}</span>
+                  <button onClick={e => { e.stopPropagation(); eliminarEvaluacion(ev); }} className="w-7 h-7 bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white rounded-lg flex items-center justify-center transition-colors" title="Eliminar evaluación">
+                    <Trash2 size={14}/>
+                  </button>
+                </div>
+              </div>
               {evaluacionRevisar?.idEvaluacion === ev.idEvaluacion && (
                 <EntregasYNotas evaluacion={ev} seccion={seccion} onCerrar={() => setEvaluacionRevisar(null)} />
               )}
@@ -538,6 +603,8 @@ const AulaVirtual = () => {
                               seccion={cursoActivo}
                               onMaterialSubido={(nuevo) => setMateriales(prev => [...prev, nuevo])}
                               onEvaluacionCreada={(nueva) => setEvaluaciones(prev => [...prev, nueva])}
+                              onMaterialEliminado={(id) => setMateriales(prev => prev.filter(m => m.idMaterial !== id))}
+                              onEvaluacionEliminada={(id) => setEvaluaciones(prev => prev.filter(e => e.idEvaluacion !== id))}
                             />
                           </div>
                         )}

@@ -87,9 +87,26 @@ const ModulosCurso = () => {
   };
 
   const eliminarModulo = async (mod) => {
+    let materiales = [];
+    let evaluaciones = [];
+    try {
+      const h = authHeaders();
+      const [resMat, resEval] = await Promise.all([
+        axios.get(`${API_BASE}/materiales/modulo/${mod.idModulo}`, { headers: h }).catch(() => ({ data: [] })),
+        axios.get(`${API_BASE}/evaluaciones/modulo/${mod.idModulo}`, { headers: h }).catch(() => ({ data: [] }))
+      ]);
+      materiales = resMat.data;
+      evaluaciones = resEval.data;
+    } catch {
+      // si falla la consulta de conteo, se sigue con la confirmación simple
+    }
+
+    const tieneContenido = materiales.length > 0 || evaluaciones.length > 0;
     const result = await customSwal.fire({
       title: `¿Eliminar "${mod.titulo}"?`,
-      text: "Esta acción no se puede deshacer.",
+      text: tieneContenido
+        ? `Este módulo tiene ${materiales.length} material(es) y ${evaluaciones.length} evaluación(es). Al eliminarlo, quedarán sin agrupar (no se borran) — ¿continuar?`
+        : "Esta acción no se puede deshacer.",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, eliminar',
@@ -99,7 +116,12 @@ const ModulosCurso = () => {
 
     try {
       await axios.delete(`${API_BASE}/modulos/${mod.idModulo}`, { headers: authHeaders() });
-      sileo.success({ title: "Eliminado", description: `"${mod.titulo}" eliminado correctamente.` });
+      sileo.success({
+        title: "Eliminado",
+        description: tieneContenido
+          ? `"${mod.titulo}" eliminado. Su material y evaluaciones quedaron sin agrupar.`
+          : `"${mod.titulo}" eliminado correctamente.`
+      });
       cargarModulos(cursoSeleccionado);
     } catch (error) {
       customSwal.fire("Error", error.response?.data?.message || "No se pudo eliminar el módulo.", "error");
