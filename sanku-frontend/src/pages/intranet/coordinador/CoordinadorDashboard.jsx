@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { 
-  LineChart, FolderPlus, CalendarCheck, Users, GraduationCap, 
-  UserPlus, BookOpen, Menu, X, Bell, User, ChevronDown, 
-  LogOut, CheckCircle2, ArrowLeft, BellOff, ChevronLeft, ChevronRight
+import {
+  LineChart, FolderPlus, CalendarCheck, Users, GraduationCap,
+  UserPlus, BookOpen, Menu, X, Bell, User, ChevronDown,
+  LogOut, CheckCircle2, ArrowLeft, BellOff, ChevronLeft, ChevronRight, Layers
 } from 'lucide-react';
 import { sileo } from 'sileo';
 import Swal from 'sweetalert2';
@@ -112,7 +112,8 @@ const CoordinadorDashboard = () => {
     { path: '/coordinador/docentes', Icon: Users, label: 'Supervisión Docente' },
     { path: '/coordinador/rendimiento', Icon: GraduationCap, label: 'Rendimiento Estudiantil' },
     { path: '/coordinador/matriculas', Icon: UserPlus, label: 'Matrículas y Admisión' },
-    { path: '/coordinador/programas', Icon: BookOpen, label: 'Programas de Estudio' }
+    { path: '/coordinador/programas', Icon: BookOpen, label: 'Programas de Estudio' },
+    { path: '/coordinador/modulos', Icon: Layers, label: 'Módulos' }
   ];
 
   const fechaActual = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });

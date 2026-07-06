@@ -26,6 +26,7 @@ import SupervisionDocente from './pages/intranet/coordinador/SupervisionDocente'
 import Rendimiento from './pages/intranet/coordinador/Rendimiento';
 import MatriculasAdmision from './pages/intranet/coordinador/MatriculasAdmision';
 import ProgramasEstudio from './pages/intranet/coordinador/ProgramasEstudio';
+import ModulosCurso from './pages/intranet/coordinador/ModulosCurso';
 import PerfilCoordinador from './pages/intranet/coordinador/PerfilCoordinador';
 
 import DocenteDashboard from './pages/intranet/docente/DocenteDashboard';
@@ -96,6 +97,7 @@ function App() {
               <Route path="rendimiento" element={<Rendimiento />} />
               <Route path="matriculas" element={<MatriculasAdmision />} />
               <Route path="programas" element={<ProgramasEstudio />} />
+              <Route path="modulos" element={<ModulosCurso />} />
               <Route path="perfil" element={<PerfilCoordinador />} />
             </Route>
 

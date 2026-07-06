@@ -75,6 +75,7 @@ const CursoCalificacionCard = ({ nombreCurso, notas }) => {
                 <th className="py-3 px-4 text-center">Peso</th>
                 <th className="py-3 px-4 text-center">Nota</th>
                 <th className="py-3 px-4 hidden sm:table-cell">Fecha</th>
+                <th className="py-3 px-4 hidden md:table-cell">Feedback del docente</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -93,6 +94,9 @@ const CursoCalificacionCard = ({ nombreCurso, notas }) => {
                   </td>
                   <td className="py-3 px-4 text-xs text-slate-400 font-medium hidden sm:table-cell">
                     {n.fechaExamen ? new Date(n.fechaExamen + 'T00:00:00').toLocaleDateString('es-ES') : '---'}
+                  </td>
+                  <td className="py-3 px-4 text-xs text-slate-500 hidden md:table-cell">
+                    {n.comentario || <span className="text-slate-300">—</span>}
                   </td>
                 </tr>
               ))}

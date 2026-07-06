@@ -107,7 +107,7 @@ const DocenteDashboard = () => {
     { path: '/docente/aula-virtual', Icon: Presentation, label: 'Mis Clases' },
     { path: '/docente/horario', Icon: CalendarDays, label: 'Mi Horario' },
     { path: '/docente/asistencia', Icon: ClipboardCheck, label: 'Tomar Asistencia' },
-    { path: '/docente/notas', Icon: FileSignature, label: 'Calificar Evaluaciones' }
+    { path: '/docente/notas', Icon: FileSignature, label: 'Resumen de Notas' }
   ];
 
   const fechaActual = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });

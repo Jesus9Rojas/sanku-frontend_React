@@ -1,7 +1,15 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FileSignature, CheckCircle2, Save, AlertCircle, Plus, X, CalendarCheck } from 'lucide-react';
+import { FileSignature } from 'lucide-react';
 import { sileo } from 'sileo';
+import { API_BASE, authHeaders } from '../../../utils/api';
+
+const notaBadge = (nota) => {
+  if (nota === null || nota === undefined || nota === '') return 'bg-slate-100 text-slate-400';
+  if (nota >= 14) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+  if (nota >= 11) return 'bg-amber-50 text-amber-700 border-amber-200';
+  return 'bg-rose-50 text-rose-700 border-rose-200';
+};
 
 const Calificador = () => {
   const [secciones, setSecciones] = useState([]);
@@ -12,31 +20,22 @@ const Calificador = () => {
   const [cargandoEvals, setCargandoEvals] = useState(false);
 
   const [evalActual, setEvalActual] = useState(null);
-  const [alumnos, setAlumnos] = useState([]);
-  const [notas, setNotas] = useState({});
+  const [notas, setNotas] = useState([]);
   const [cargandoNotas, setCargandoNotas] = useState(false);
-  const [guardando, setGuardando] = useState(false);
-  const [estadoSincronizacion, setEstadoSincronizacion] = useState('');
-
-  const [modalEval, setModalEval] = useState(false);
-  const [formEval, setFormEval] = useState({ nombreExamen: '', pesoPorcentaje: '', fechaExamen: '' });
-  const [guardandoEval, setGuardandoEval] = useState(false);
-
-  const getHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
   useEffect(() => {
     let isMounted = true;
     const cargarMisCursos = async () => {
       try {
-        const headers = getHeaders();
+        const headers = authHeaders();
         let docenteId = localStorage.getItem('docenteId');
         if (!docenteId) {
           const usuarioId = localStorage.getItem('usuarioId');
-          const resPerfil = await axios.get(`http://localhost:8080/api/v1/docentes/perfil/${usuarioId}`, { headers });
+          const resPerfil = await axios.get(`${API_BASE}/docentes/perfil/${usuarioId}`, { headers });
           docenteId = String(resPerfil.data.idDocente);
           localStorage.setItem('docenteId', docenteId);
         }
-        const res = await axios.get(`http://localhost:8080/api/v1/secciones/docente/${docenteId}`, { headers });
+        const res = await axios.get(`${API_BASE}/secciones/docente/${docenteId}`, { headers });
         if (isMounted) setSecciones(res.data);
       } catch {
         sileo.error({ title: "Error", description: "No se pudieron cargar tus cursos." });
@@ -51,7 +50,7 @@ const Calificador = () => {
   const cargarEvaluaciones = async (sec) => {
     setCargandoEvals(true);
     try {
-      const res = await axios.get(`http://localhost:8080/api/v1/evaluaciones/seccion/${sec.idSeccion}`, { headers: getHeaders() });
+      const res = await axios.get(`${API_BASE}/evaluaciones/seccion/${sec.idSeccion}`, { headers: authHeaders() });
       setEvaluaciones(res.data);
     } catch {
       setEvaluaciones([]);
@@ -63,110 +62,29 @@ const Calificador = () => {
   const seleccionarSeccion = (sec) => {
     setSeccionActual(sec);
     setEvalActual(null);
-    setAlumnos([]);
+    setNotas([]);
     cargarEvaluaciones(sec);
   };
 
   const seleccionarEvaluacion = async (ev) => {
     setEvalActual(ev);
     setCargandoNotas(true);
-    setEstadoSincronizacion('');
-
     try {
-      const [resAlum, resNotas] = await Promise.all([
-        axios.get(`http://localhost:8080/api/v1/matriculas/seccion/${seccionActual.idSeccion}`, { headers: getHeaders() }),
-        axios.get(`http://localhost:8080/api/v1/notas/evaluacion/${ev.idEvaluacion}`, { headers: getHeaders() }).catch(() => ({ data: [] }))
-      ]);
-
-      const listaAlumnos = resAlum.data;
-      const notasPrevias = resNotas.data;
-
-      const objNotas = {};
-      listaAlumnos.forEach(a => {
-        const n = notasPrevias.find(np => Number.parseInt(np.alumnoId) === Number.parseInt(a.alumnoId));
-        objNotas[a.alumnoId] = n ? n.nota : '';
-      });
-
-      setAlumnos(listaAlumnos);
-      setNotas(objNotas);
+      const res = await axios.get(`${API_BASE}/notas/evaluacion/${ev.idEvaluacion}`, { headers: authHeaders() });
+      setNotas(res.data);
     } catch {
-      sileo.error({ title: "Error", description: "Fallo al cargar la nómina de estudiantes." });
+      sileo.error({ title: "Error", description: "Fallo al cargar las notas registradas." });
+      setNotas([]);
     } finally {
       setCargandoNotas(false);
-    }
-  };
-
-  const manejarCambioNota = (alumnoId, valorStr) => {
-    let valor = valorStr.slice(0, 2);
-    if (valor !== '' && Number.parseInt(valor) > 20) valor = '20';
-    if (valor !== '' && Number.parseInt(valor) < 0) valor = '0';
-    setNotas(prev => ({ ...prev, [alumnoId]: valor }));
-    setEstadoSincronizacion('Cambios sin guardar');
-  };
-
-  const guardarCalificaciones = async () => {
-    setGuardando(true);
-    let enviadas = 0;
-
-    try {
-      const peticiones = alumnos.map(a => {
-        const notaStr = notas[a.alumnoId];
-        if (notaStr !== '' && notaStr !== null && notaStr !== undefined) {
-          return axios.post('http://localhost:8080/api/v1/notas/registrar', {
-            evaluacionId: evalActual.idEvaluacion,
-            alumnoId: a.alumnoId,
-            nota: Number.parseFloat(notaStr)
-          }, { headers: getHeaders() }).then(() => { enviadas++; }).catch(() => {});
-        }
-        return Promise.resolve();
-      });
-
-      await Promise.all(peticiones);
-
-      if (enviadas > 0) {
-        setEstadoSincronizacion('Sincronizado');
-        sileo.success({ title: "Guardado", description: `Se guardaron ${enviadas} calificaciones.` });
-      } else {
-        setEstadoSincronizacion('');
-      }
-    } catch {
-      sileo.error({ title: "Error crítico", description: "Fallo al conectar con el servidor." });
-    } finally {
-      setGuardando(false);
-      setTimeout(() => setEstadoSincronizacion(''), 3000);
-    }
-  };
-
-  const abrirModalEval = () => {
-    setFormEval({ nombreExamen: '', pesoPorcentaje: '', fechaExamen: '' });
-    setModalEval(true);
-  };
-
-  const crearEvaluacion = async (e) => {
-    e.preventDefault();
-    setGuardandoEval(true);
-    try {
-      await axios.post('http://localhost:8080/api/v1/evaluaciones', {
-        seccionId: seccionActual.idSeccion,
-        nombreExamen: formEval.nombreExamen.trim(),
-        pesoPorcentaje: Number.parseInt(formEval.pesoPorcentaje),
-        fechaExamen: formEval.fechaExamen
-      }, { headers: getHeaders() });
-      setModalEval(false);
-      sileo.success({ title: "Evaluación creada", description: `"${formEval.nombreExamen}" añadida al curso.` });
-      cargarEvaluaciones(seccionActual);
-    } catch {
-      sileo.error({ title: "Error", description: "No se pudo crear la evaluación." });
-    } finally {
-      setGuardandoEval(false);
     }
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div>
-        <h2 className="text-2xl font-black text-slate-800">Calificador de Evaluaciones</h2>
-        <p className="text-slate-500 text-sm">Las notas (0-20) se guardan al hacer clic en guardar.</p>
+        <h2 className="text-2xl font-black text-slate-800">Resumen de Calificaciones</h2>
+        <p className="text-slate-500 text-sm">Consulta rápida de notas y comentarios ya registrados. Para crear evaluaciones y calificar, hazlo desde Aula Virtual (por módulo).</p>
       </div>
 
       <div className="space-y-4">
@@ -185,23 +103,12 @@ const Calificador = () => {
           ))}
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-          <p className="font-bold text-slate-700 text-sm">2. Selecciona la evaluación:</p>
-          {seccionActual && (
-            <button onClick={abrirModalEval} className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">
-              <Plus size={14}/> Nueva Evaluación
-            </button>
-          )}
-        </div>
-
+        <p className="font-bold text-slate-700 text-sm pt-4 border-t border-slate-200">2. Selecciona la evaluación:</p>
         <div className="flex flex-wrap gap-3 min-h-[44px]">
           {seccionActual === null && <span className="text-slate-400 text-sm">Elige un curso primero...</span>}
-          {seccionActual && cargandoEvals && <span className="text-slate-400 text-sm"><i className="fa-solid fa-spinner fa-spin"></i> Buscando evaluaciones...</span>}
+          {seccionActual && cargandoEvals && <span className="text-slate-400 text-sm">Buscando evaluaciones...</span>}
           {seccionActual && !cargandoEvals && evaluaciones.length === 0 && (
-            <span className="text-rose-500 text-sm font-semibold flex items-center gap-1">
-              <AlertCircle size={16}/> Aún no hay evaluaciones para este curso.
-              <button onClick={abrirModalEval} className="ml-2 underline text-indigo-600 hover:text-indigo-800">Crear una</button>
-            </span>
+            <span className="text-slate-400 text-sm">Aún no hay evaluaciones para este curso.</span>
           )}
           {seccionActual && !cargandoEvals && evaluaciones.map(ev => (
             <button
@@ -222,8 +129,6 @@ const Calificador = () => {
               <FileSignature className="text-indigo-500" size={20}/>
               Notas: <span className="text-indigo-600">{evalActual.nombreExamen}</span>
             </h3>
-            {estadoSincronizacion === 'Sincronizado' && <span className="text-emerald-500 font-bold text-sm flex items-center gap-1"><CheckCircle2 size={16}/> Sincronizado</span>}
-            {estadoSincronizacion === 'Cambios sin guardar' && <span className="text-amber-500 font-bold text-sm flex items-center gap-1"><AlertCircle size={16}/> Cambios pendientes</span>}
           </div>
 
           <div className="p-6 overflow-x-auto">
@@ -231,96 +136,26 @@ const Calificador = () => {
               <thead>
                 <tr className="border-b border-slate-200 text-slate-400 text-xs uppercase tracking-wider">
                   <th className="py-3 px-4">Alumno</th>
-                  <th className="py-3 px-4 text-center w-40">Nota (0 a 20)</th>
+                  <th className="py-3 px-4 text-center w-28">Nota</th>
+                  <th className="py-3 px-4">Comentario</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {cargandoNotas && <tr><td colSpan="2" className="text-center py-10 text-slate-400"><i className="fa-solid fa-spinner fa-spin mr-2"></i> Cargando nómina...</td></tr>}
-                {!cargandoNotas && alumnos.length === 0 && <tr><td colSpan="2" className="text-center py-10 text-slate-400">No hay alumnos matriculados.</td></tr>}
-                {!cargandoNotas && alumnos.map((a) => (
-                  <tr key={a.alumnoId} className="hover:bg-slate-50 transition-colors group">
-                    <td className="py-3 px-4 font-bold text-slate-700">{a.nombreAlumno}</td>
-                    <td className="py-3 px-4 text-center bg-slate-50 group-hover:bg-indigo-50/50 transition-colors">
-                      <input
-                        type="number"
-                        placeholder="-"
-                        value={notas[a.alumnoId] || ''}
-                        onChange={(e) => manejarCambioNota(a.alumnoId, e.target.value)}
-                        className="w-20 p-2 text-center rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none font-black text-slate-800 bg-white shadow-inner"
-                      />
+                {cargandoNotas && <tr><td colSpan="3" className="text-center py-10 text-slate-400">Cargando notas...</td></tr>}
+                {!cargandoNotas && notas.length === 0 && <tr><td colSpan="3" className="text-center py-10 text-slate-400">Aún no hay notas registradas para esta evaluación.</td></tr>}
+                {!cargandoNotas && notas.map((n, i) => (
+                  <tr key={i} className="hover:bg-slate-50 transition-colors">
+                    <td className="py-3 px-4 font-bold text-slate-700">{n.nombreAlumno || `Alumno #${n.alumnoId}`}</td>
+                    <td className="py-3 px-4 text-center">
+                      <span className={`text-sm font-black px-3 py-1 rounded-xl border ${notaBadge(n.nota)}`}>
+                        {n.nota !== null && n.nota !== undefined ? Number(n.nota).toFixed(2) : '---'}
+                      </span>
                     </td>
+                    <td className="py-3 px-4 text-slate-500">{n.comentario || <span className="text-slate-300">Sin comentario</span>}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-
-          <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
-            <button
-              onClick={guardarCalificaciones}
-              disabled={guardando || alumnos.length === 0}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-md disabled:opacity-50 flex items-center gap-2"
-            >
-              {guardando ? <i className="fa-solid fa-spinner fa-spin"></i> : <Save size={18}/>}
-              Guardar Calificaciones
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL NUEVA EVALUACIÓN */}
-      {modalEval && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h3 className="font-black text-lg text-slate-800 flex items-center gap-2"><CalendarCheck className="text-indigo-500" size={20}/> Nueva Evaluación</h3>
-              <button onClick={() => setModalEval(false)} className="text-slate-400 hover:text-slate-600"><X size={20}/></button>
-            </div>
-            <form onSubmit={crearEvaluacion} className="p-6 space-y-4">
-              <div>
-                <label htmlFor="eval-nombre" className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre del Examen</label>
-                <input
-                  id="eval-nombre"
-                  type="text"
-                  required
-                  placeholder="Ej: Práctica Calificada 3"
-                  value={formEval.nombreExamen}
-                  onChange={e => setFormEval(p => ({ ...p, nombreExamen: e.target.value }))}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
-                />
-              </div>
-              <div>
-                <label htmlFor="eval-peso" className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso (%)</label>
-                <input
-                  id="eval-peso"
-                  type="number"
-                  required
-                  min="1"
-                  max="100"
-                  placeholder="Ej: 20"
-                  value={formEval.pesoPorcentaje}
-                  onChange={e => setFormEval(p => ({ ...p, pesoPorcentaje: e.target.value }))}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
-                />
-              </div>
-              <div>
-                <label htmlFor="eval-fecha" className="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha del Examen</label>
-                <input
-                  id="eval-fecha"
-                  type="date"
-                  required
-                  value={formEval.fechaExamen}
-                  onChange={e => setFormEval(p => ({ ...p, fechaExamen: e.target.value }))}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
-                />
-              </div>
-              <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
-                <button type="button" onClick={() => setModalEval(false)} className="px-5 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancelar</button>
-                <button type="submit" disabled={guardandoEval} className="px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md transition-colors disabled:opacity-70 flex items-center gap-2">
-                  {guardandoEval ? <i className="fa-solid fa-spinner fa-spin"></i> : <Plus size={16}/>} Crear
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

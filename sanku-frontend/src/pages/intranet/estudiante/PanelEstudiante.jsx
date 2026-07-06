@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   Presentation, TrendingUp, Wallet, Clock,
-  BookOpen, GraduationCap, Headset, Briefcase, MapPin, Laptop, LayoutGrid
+  BookOpen, GraduationCap, Headset, Briefcase, MapPin, Laptop, LayoutGrid, Megaphone
 } from 'lucide-react';
 import { sileo } from 'sileo';
+import { API_BASE, authHeaders } from '../../../utils/api';
 
 const getCicloActual = () => {
   const now = new Date();
@@ -17,6 +18,7 @@ const PanelEstudiante = () => {
   const [perfil, setPerfil] = useState(null);
   const [clasesHoy, setClasesHoy] = useState([]);
   const [deudaPendiente, setDeudaPendiente] = useState(0);
+  const [anuncios, setAnuncios] = useState([]);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
@@ -32,16 +34,18 @@ const PanelEstudiante = () => {
         const alumnoId = dataPerfil.idAlumno;
         const miCarrera = dataPerfil.nombreCarrera;
 
-        const [resPagos, resCarreras, resCursos, resSecciones] = await Promise.all([
+        const [resPagos, resCarreras, resCursos, resSecciones, resAnuncios] = await Promise.all([
           axios.get(`http://localhost:8080/api/v1/cuotas/alumno/${alumnoId}`, { headers }).catch(() => ({ data: [] })),
           axios.get(`http://localhost:8080/api/v1/carreras`, { headers }).catch(() => ({ data: [] })),
           axios.get(`http://localhost:8080/api/v1/cursos`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`http://localhost:8080/api/v1/secciones/ciclo/${getCicloActual()}`, { headers }).catch(() => ({ data: [] }))
+          axios.get(`http://localhost:8080/api/v1/secciones/ciclo/${getCicloActual()}`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/anuncios/alumno/${alumnoId}`, { headers: authHeaders() }).catch(() => ({ data: [] }))
         ]);
 
         if (!isMounted) return;
 
         setPerfil(dataPerfil);
+        setAnuncios(resAnuncios.data);
 
         let totalDeuda = 0;
         resPagos.data.forEach(c => {
@@ -158,6 +162,25 @@ const PanelEstudiante = () => {
               <span className="text-xs font-bold text-slate-600">Mis Pagos</span>
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <h3 className="font-bold text-slate-800 p-6 border-b border-slate-100 flex items-center gap-2"><Megaphone className="text-amber-500"/> Anuncios Recientes</h3>
+        <div className="p-6 space-y-3">
+          {cargando && <p className="text-center text-slate-400 py-6">Cargando anuncios...</p>}
+          {!cargando && anuncios.length === 0 && (
+            <p className="text-center text-slate-400 py-6 font-medium">No hay anuncios recientes de tus secciones.</p>
+          )}
+          {!cargando && anuncios.slice(0, 5).map(a => (
+            <div key={a.idAnuncio} className="bg-amber-50/50 border border-amber-100 rounded-2xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-bold text-slate-800 text-sm">{a.titulo}</p>
+                <span className="text-xs text-slate-400 shrink-0">{new Date(a.fechaPublicacion).toLocaleDateString('es-ES')}</span>
+              </div>
+              <p className="text-slate-600 text-sm mt-1">{a.contenido}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
