@@ -16,7 +16,8 @@ import PanelGeneral from './pages/intranet/admin/PanelGeneral';
 import UsuariosAdmin from './pages/intranet/admin/UsuariosAdmin';
 import ReportesBI from './pages/intranet/admin/ReportesBI';
 import BuzonSae from './pages/intranet/admin/BuzonSae';
-import FinanzasAdmin from './pages/intranet/admin/FinanzasAdmin'; 
+import FinanzasAdmin from './pages/intranet/admin/FinanzasAdmin';
+import PerfilAdmin from './pages/intranet/admin/PerfilAdmin';
 
 import CoordinadorDashboard from './pages/intranet/coordinador/CoordinadorDashboard';
 import PanelAcademico from './pages/intranet/coordinador/PanelAcademico';
@@ -87,6 +88,7 @@ function App() {
               <Route path="reportes" element={<ReportesBI />} />
               <Route path="sae" element={<BuzonSae />} />
               <Route path="finanzas" element={<FinanzasAdmin />} />
+              <Route path="perfil" element={<PerfilAdmin />} />
             </Route>
 
             <Route path="/coordinador" element={<CoordinadorDashboard />}>

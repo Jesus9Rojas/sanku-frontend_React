@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Globe, UserPlus, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Globe, UserPlus, ArrowRight, ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
 import { sileo } from 'sileo';
 import Swal from 'sweetalert2';
 
@@ -18,6 +18,7 @@ const MatriculasAdmision = () => {
   const [carreras, setCarreras] = useState([]);
   const [cargandoPostulantes, setCargandoPostulantes] = useState(true);
   const [aprobandoId, setAprobandoId] = useState(null);
+  const [rechazandoId, setRechazandoId] = useState(null); // Nuevo estado para rechazar
 
   // Estados del Wizard Manual
   const [paso, setPaso] = useState(1);
@@ -27,7 +28,6 @@ const MatriculasAdmision = () => {
 
   const getHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
-  // Función exclusiva para el botón de "Aprobar" (fuera del useEffect)
   const recargarPostulantes = async () => {
     try {
       const res = await axios.get('http://localhost:8080/api/v1/postulantes/pendientes', { headers: getHeaders() });
@@ -37,7 +37,6 @@ const MatriculasAdmision = () => {
     }
   };
 
-  // Carga inicial protegida para cumplir con las reglas del linter
   useEffect(() => {
     let isMounted = true;
     
@@ -75,6 +74,33 @@ const MatriculasAdmision = () => {
       customSwal.fire("No se pudo aprobar", errorMsg, "error");
     } finally {
       setAprobandoId(null);
+    }
+  };
+
+  // NUENA FUNCIÓN PARA RECHAZAR POSTULANTE
+  const rechazarPostulante = async (id) => {
+    const confirmacion = await customSwal.fire({
+      title: '¿Rechazar Postulante?',
+      text: "Esta acción marcará la solicitud como rechazada y no se podrá deshacer.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, rechazar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ef4444' // Botón rojo para advertir
+    });
+
+    if (confirmacion.isConfirmed) {
+      setRechazandoId(id);
+      try {
+        const res = await axios.post(`http://localhost:8080/api/v1/postulantes/${id}/rechazar`, {}, { headers: getHeaders() });
+        sileo.success({ title: "Rechazado", description: res.data || "El postulante ha sido rechazado." });
+        recargarPostulantes(); // Desaparecerá de la lista
+      } catch (error) {
+        const errorMsg = error.response?.data?.message || error.response?.data?.error || "Error al intentar rechazar";
+        customSwal.fire("No se pudo rechazar", errorMsg, "error");
+      } finally {
+        setRechazandoId(null);
+      }
     }
   };
 
@@ -131,14 +157,26 @@ const MatriculasAdmision = () => {
                     </td>
                     <td className="py-3 px-4 text-slate-600">{p.nombreCarrera}</td>
                     <td className="py-3 px-4 text-slate-600">{p.sede} - {p.turno}</td>
-                    <td className="py-3 px-4 text-right">
-                      <button 
-                        onClick={() => aprobarPostulante(p.idPostulante)} 
-                        disabled={aprobandoId === p.idPostulante}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl transition-colors text-xs flex items-center gap-2 ml-auto disabled:opacity-70"
-                      >
-                        {aprobandoId === p.idPostulante ? <i className="fa-solid fa-spinner fa-spin"></i> : <CheckCircle2 size={14}/>} Aprobar
-                      </button>
+                    <td className="py-3 px-4">
+                      <div className="flex justify-end gap-2">
+                        {/* Botón de Rechazar */}
+                        <button 
+                          onClick={() => rechazarPostulante(p.idPostulante)} 
+                          disabled={rechazandoId === p.idPostulante || aprobandoId === p.idPostulante}
+                          className="bg-white border border-rose-200 text-rose-500 hover:bg-rose-50 font-bold px-3 py-2 rounded-xl transition-colors text-xs flex items-center gap-2 disabled:opacity-50"
+                        >
+                          {rechazandoId === p.idPostulante ? <i className="fa-solid fa-spinner fa-spin"></i> : <XCircle size={14}/>} Rechazar
+                        </button>
+
+                        {/* Botón de Aprobar */}
+                        <button 
+                          onClick={() => aprobarPostulante(p.idPostulante)} 
+                          disabled={aprobandoId === p.idPostulante || rechazandoId === p.idPostulante}
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-3 py-2 rounded-xl transition-colors text-xs flex items-center gap-2 disabled:opacity-50"
+                        >
+                          {aprobandoId === p.idPostulante ? <i className="fa-solid fa-spinner fa-spin"></i> : <CheckCircle2 size={14}/>} Aprobar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
