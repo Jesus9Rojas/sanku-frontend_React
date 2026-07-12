@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ChevronDown, Menu } from 'lucide-react';
 import { API_BASE } from '../utils/api';
+import logoSanku from '../assets/Jhalabet.png';
 
 export const Navbar = () => {
   const location = useLocation();
@@ -37,7 +38,7 @@ export const Navbar = () => {
     >
       <div className="flex items-center">
         <Link to="/">
-          <img src="/src/assets/Jhalabet.png" alt="Logo SANKU" className="w-auto h-13 filter invert brightness-0" />
+          <img src={logoSanku} alt="Logo Instituto SANKU" alt="Logo SANKU" className="w-auto h-13 filter invert brightness-0" />
         </Link>
       </div>
 

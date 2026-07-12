@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import logoSanku from '../assets/Jhalabet.png';
 
 export const Footer = () => {
   return (
@@ -7,7 +8,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 text-left mb-16">
           
           <div className="md:col-span-1">
-            <img src="/src/assets/Jhalabet.png" alt="Logo SANKU" className="w-auto h-9.5 filter invert brightness-0 mb-2 opacity-80" />
+            <img src={logoSanku} alt="Logo Instituto SANKU" alt="Logo SANKU" className="w-auto h-9.5 filter invert brightness-0 mb-2 opacity-80" />
             <p className="text-sm text-white/40 leading-relaxed">
               Formando profesionales técnicos competentes, integrales y emprendedores para la nueva era.
             </p>

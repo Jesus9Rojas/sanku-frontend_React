@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import { API_BASE } from '../../utils/api';
+import logoSanku from '../../assets/Jhalabet.png';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -81,7 +82,7 @@ export const Login = () => {
         >
           <div className="text-center mb-10">
             {/* Logo invertido a blanco */}
-            <img src="../src/assets/Jhalabet.png" alt="Logo Instituto SANKU" className="max-w-[200px] w-full h-auto mx-auto block mb-6 filter invert brightness-0 opacity-90" />
+            <img src={logoSanku} alt="Logo Instituto SANKU" className="max-w-[200px] w-full h-auto mx-auto block mb-6 filter invert brightness-0 opacity-90" />
             <h2 className="font-semibold text-xl tracking-wide text-white">INTRANET <span className="text-[#00d2ff]">SANKU</span></h2>
             <p className="text-white/50 text-sm mt-2">Acceso para Estudiantes y Docentes</p>
           </div>
