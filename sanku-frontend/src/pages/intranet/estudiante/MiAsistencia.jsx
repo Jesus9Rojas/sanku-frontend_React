@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { CalendarCheck, CheckCircle, XCircle, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 const getCicloActual = () => {
   const now = new Date();
@@ -113,7 +114,7 @@ const MiAsistencia = () => {
         return;
       }
       try {
-        const res = await axios.get(`http://localhost:8080/api/v1/asistencias/alumno/${alumnoId}`, { headers: getHeaders() });
+        const res = await axios.get(`${API_BASE}/asistencias/alumno/${alumnoId}`, { headers: getHeaders() });
         if (isMounted) setTodasLasAsistencias(res.data);
       } catch (error) {
         console.error(error);

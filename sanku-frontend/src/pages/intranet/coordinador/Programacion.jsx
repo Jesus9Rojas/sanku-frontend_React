@@ -3,6 +3,7 @@ import axios from 'axios';
 import { CalendarCheck, Search, Plus, UserPen, Trash2, X, Save } from 'lucide-react';
 import { sileo } from 'sileo';
 import Swal from 'sweetalert2';
+import { API_BASE } from '../../../utils/api';
 
 const customSwal = Swal.mixin({
   customClass: {
@@ -35,7 +36,7 @@ const Programacion = () => {
 
   const recargarSecciones = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/api/v1/secciones', { headers: getHeaders() });
+      const res = await axios.get(`${API_BASE}/secciones`, { headers: getHeaders() });
       setSecciones(res.data);
     } catch {
       sileo.error({ title: "Error", description: "No se pudo actualizar la tabla de programación." });
@@ -49,9 +50,9 @@ const Programacion = () => {
       try {
         const h = getHeaders();
         const [resSecciones, resCursos, resDocentes] = await Promise.all([
-          axios.get('http://localhost:8080/api/v1/secciones', { headers: h }),
-          axios.get('http://localhost:8080/api/v1/cursos', { headers: h }),
-          axios.get('http://localhost:8080/api/v1/docentes', { headers: h })
+          axios.get(`${API_BASE}/secciones`, { headers: h }),
+          axios.get(`${API_BASE}/cursos`, { headers: h }),
+          axios.get(`${API_BASE}/docentes`, { headers: h })
         ]);
 
         if (isMounted) {
@@ -96,8 +97,8 @@ const Programacion = () => {
     }
     setGuardando(true);
     const url = form.idSeccion
-      ? `http://localhost:8080/api/v1/secciones/${form.idSeccion}`
-      : 'http://localhost:8080/api/v1/secciones';
+      ? `${API_BASE}/secciones/${form.idSeccion}`
+      : `${API_BASE}/secciones`;
     const method = form.idSeccion ? 'PUT' : 'POST';
 
     try {
@@ -124,7 +125,7 @@ const Programacion = () => {
     if (!result.isConfirmed) return;
 
     try {
-      await axios.delete(`http://localhost:8080/api/v1/secciones/${sec.idSeccion}`, { headers: getHeaders() });
+      await axios.delete(`${API_BASE}/secciones/${sec.idSeccion}`, { headers: getHeaders() });
       setSecciones(prev => prev.filter(s => s.idSeccion !== sec.idSeccion));
       sileo.success({ title: "Eliminado", description: `SEC-${sec.idSeccion} eliminada correctamente.` });
     } catch {

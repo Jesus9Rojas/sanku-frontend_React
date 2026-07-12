@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import {Calendar, Check, X, Save } from 'lucide-react';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 const Asistencia = () => {
   const [secciones, setSecciones] = useState([]);
@@ -28,11 +29,11 @@ const Asistencia = () => {
         let docenteId = localStorage.getItem('docenteId');
         if (!docenteId) {
           const usuarioId = localStorage.getItem('usuarioId');
-          const resPerfil = await axios.get(`http://localhost:8080/api/v1/docentes/perfil/${usuarioId}`, { headers });
+          const resPerfil = await axios.get(`${API_BASE}/docentes/perfil/${usuarioId}`, { headers });
           docenteId = String(resPerfil.data.idDocente);
           localStorage.setItem('docenteId', docenteId);
         }
-        const res = await axios.get(`http://localhost:8080/api/v1/secciones/docente/${docenteId}`, { headers });
+        const res = await axios.get(`${API_BASE}/secciones/docente/${docenteId}`, { headers });
         if (isMounted) setSecciones(res.data);
       } catch {
         sileo.error({ title: "Error", description: "No se pudieron cargar tus cursos." });
@@ -51,13 +52,13 @@ const Asistencia = () => {
     
     try {
       // 1. Obtener alumnos matriculados
-      const resAlum = await axios.get(`http://localhost:8080/api/v1/matriculas/seccion/${sec.idSeccion}`, { headers: getHeaders() });
+      const resAlum = await axios.get(`${API_BASE}/matriculas/seccion/${sec.idSeccion}`, { headers: getHeaders() });
       const listaAlumnos = resAlum.data;
       
       // 2. Obtener asistencia previa de hoy (si existe)
       let asistenciaGuardada = [];
       try {
-        const resAsis = await axios.get(`http://localhost:8080/api/v1/asistencias/seccion/${sec.idSeccion}/fecha/${fechaHoyStr}`, { headers: getHeaders() });
+        const resAsis = await axios.get(`${API_BASE}/asistencias/seccion/${sec.idSeccion}/fecha/${fechaHoyStr}`, { headers: getHeaders() });
         asistenciaGuardada = resAsis.data;
       } catch { /* No hay asistencia previa, ignorar */ }
 
@@ -88,7 +89,7 @@ const Asistencia = () => {
     try {
       // Guardamos en paralelo para mayor velocidad
       const peticiones = alumnos.map(a => 
-        axios.post('http://localhost:8080/api/v1/asistencias/registrar', {
+        axios.post(`${API_BASE}/asistencias/registrar`, {
           seccionId: seccionActual.idSeccion,
           alumnoId: a.alumnoId,
           presente: asistenciaState[a.alumnoId]

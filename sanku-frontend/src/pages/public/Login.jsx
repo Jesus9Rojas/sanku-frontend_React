@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
+import { API_BASE } from '../../utils/api';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ export const Login = () => {
     setErrorMsg('');
 
     try {
-      const response = await fetch('http://localhost:8080/api/v1/auth/login', {
+      const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email, password: password })

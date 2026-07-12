@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { sileo } from 'sileo';
 import Swal from 'sweetalert2';
+import { API_BASE } from './utils/api';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ const AdminDashboard = () => {
 
     const cargarNotificaciones = async () => {
       try {
-        const res = await axios.get('http://localhost:8080/api/v1/notificaciones/admin', {
+        const res = await axios.get(`${API_BASE}/notificaciones/admin`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         if (isMounted) setNotificaciones(res.data);

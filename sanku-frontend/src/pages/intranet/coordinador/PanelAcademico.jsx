@@ -5,6 +5,7 @@ import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 import Swal from 'sweetalert2';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 const PanelAcademico = () => {
   const [metricas, setMetricas] = useState({ cursos: 0, docentes: 0, alertas: 0 });
@@ -16,7 +17,7 @@ const PanelAcademico = () => {
   // Función exclusiva para el botón Resolver
   const recargarAlertasManual = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/api/v1/alertas/pendientes', { headers: getHeaders() });
+      const res = await axios.get(`${API_BASE}/alertas/pendientes`, { headers: getHeaders() });
       setAlertas(res.data);
       setMetricas(prev => ({ ...prev, alertas: res.data.length }));
     } catch {
@@ -33,10 +34,10 @@ const PanelAcademico = () => {
         const h = { Authorization: `Bearer ${localStorage.getItem('token')}` };
         
         const [resAlertas, resSecciones, resDocentes, resRendimiento] = await Promise.all([
-          axios.get('http://localhost:8080/api/v1/alertas/pendientes', { headers: h }).catch(() => ({ data: [] })),
-          axios.get('http://localhost:8080/api/v1/secciones', { headers: h }).catch(() => ({ data: [] })),
-          axios.get('http://localhost:8080/api/v1/docentes', { headers: h }).catch(() => ({ data: [] })),
-          axios.get('http://localhost:8080/api/v1/reportes/rendimiento', { headers: h }).catch(() => ({ data: [] }))
+          axios.get(`${API_BASE}/alertas/pendientes`, { headers: h }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/secciones`, { headers: h }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/docentes`, { headers: h }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/reportes/rendimiento`, { headers: h }).catch(() => ({ data: [] }))
         ]);
 
         if (!isMounted) return;
@@ -100,7 +101,7 @@ const PanelAcademico = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.put(`http://localhost:8080/api/v1/alertas/${id}/resolver`, {}, { headers: getHeaders() });
+          await axios.put(`${API_BASE}/alertas/${id}/resolver`, {}, { headers: getHeaders() });
           sileo.success({ title: "Resuelta", description: "Alerta marcada como solucionada." });
           recargarAlertasManual();
         } catch {

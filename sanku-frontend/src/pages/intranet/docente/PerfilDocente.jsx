@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Mail, CreditCard, GraduationCap } from 'lucide-react';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 const PerfilDocente = () => {
   const [docente, setDocente] = useState({});
@@ -12,7 +13,7 @@ const PerfilDocente = () => {
     const userId = localStorage.getItem("usuarioId");
     const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
     
-    axios.get(`http://localhost:8080/api/v1/docentes/perfil/${userId}`, { headers })
+    axios.get(`${API_BASE}/docentes/perfil/${userId}`, { headers })
       .then(res => { if (isMounted) setDocente(res.data); })
       .catch(() => sileo.error({ title: "Error", description: "No se pudo cargar la información del perfil." }))
       .finally(() => { if (isMounted) setCargando(false); });

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { BookOpen, Plus, Pen, X, Save } from 'lucide-react';
 import { sileo } from 'sileo';
 import Swal from 'sweetalert2';
+import { API_BASE } from '../../../utils/api';
 
 // IMPORTACIONES NUEVAS Y COMPATIBLES CON REACT 19
 import ReactQuill from 'react-quill-new';
@@ -41,7 +42,7 @@ const ProgramasEstudio = () => {
 
   const recargarProgramas = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/api/v1/carreras', { headers: getHeaders() });
+      const res = await axios.get(`${API_BASE}/carreras`, { headers: getHeaders() });
       setProgramas(res.data);
     } catch {
       sileo.error({ title: "Error", description: "No se pudieron recargar los programas." });
@@ -54,7 +55,7 @@ const ProgramasEstudio = () => {
     const fetchInicial = async () => {
       try {
         const headersLocal = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-        const res = await axios.get('http://localhost:8080/api/v1/carreras', { headers: headersLocal });
+        const res = await axios.get(`${API_BASE}/carreras`, { headers: headersLocal });
         if (isMounted) setProgramas(res.data);
       } catch {
         sileo.error({ title: "Error", description: "No se pudieron cargar los programas iniciales." });
@@ -97,7 +98,7 @@ const ProgramasEstudio = () => {
       estado: form.estado === 'true'
     };
     
-    const url = form.idCarrera ? `http://localhost:8080/api/v1/carreras/${form.idCarrera}` : `http://localhost:8080/api/v1/carreras`;
+    const url = form.idCarrera ? `${API_BASE}/carreras/${form.idCarrera}` : `${API_BASE}/carreras`;
     const method = form.idCarrera ? 'PUT' : 'POST';
 
     try {

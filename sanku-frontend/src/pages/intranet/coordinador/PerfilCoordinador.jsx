@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Mail, CreditCard, ShieldCheck } from 'lucide-react';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 const PerfilCoordinador = () => {
   const [usuario, setUsuario] = useState({});
@@ -11,7 +12,7 @@ const PerfilCoordinador = () => {
     const userId = localStorage.getItem("usuarioId");
     const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
     
-    axios.get(`http://localhost:8080/api/v1/usuarios`, { headers })
+    axios.get(`${API_BASE}/usuarios`, { headers })
       .then(res => {
         // Encontramos al usuario logeado dentro de la lista de todos los usuarios
         const miPerfil = res.data.find(u => Number(u.idUsuario) === Number(userId));

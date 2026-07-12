@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Clock, Users } from 'lucide-react';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 const coloresCursos = ['#4f46e5', '#ea580c', '#0d9488', '#9333ea', '#e11d48', '#2563eb'];
 const diasCabecera = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -19,7 +20,7 @@ const HorarioDocente = () => {
     const cargarMisCursos = async () => {
       if (!docenteId) return;
       try {
-        const res = await axios.get(`http://localhost:8080/api/v1/secciones/docente/${docenteId}`, { headers: getHeaders() });
+        const res = await axios.get(`${API_BASE}/secciones/docente/${docenteId}`, { headers: getHeaders() });
         if (isMounted) setSecciones(res.data);
       } catch {
         sileo.error({ title: "Error", description: "No se pudo cargar el horario." });

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Wallet, ArrowRight, ArrowLeft, Check, GraduationCap, X } from 'lucide-react';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 const MatriculaEnLinea = () => {
   const navigate = useNavigate();
@@ -26,17 +27,17 @@ const MatriculaEnLinea = () => {
       if (!usuarioId) return;
       try {
         const h = getHeaders();
-        const resPerfil = await axios.get(`http://localhost:8080/api/v1/alumnos/perfil/${usuarioId}`, { headers: h });
+        const resPerfil = await axios.get(`${API_BASE}/alumnos/perfil/${usuarioId}`, { headers: h });
         const idAlum = resPerfil.data.idAlumno;
         const miCarrera = resPerfil.data.nombreCarrera;
         
         if (isMounted) setAlumnoId(idAlum);
 
         const [resPagos, resCarreras, resCursos, resSecciones] = await Promise.all([
-          axios.get(`http://localhost:8080/api/v1/cuotas/alumno/${idAlum}`, { headers: h }).catch(() => ({ data: [] })),
-          axios.get(`http://localhost:8080/api/v1/carreras`, { headers: h }).catch(() => ({ data: [] })),
-          axios.get(`http://localhost:8080/api/v1/cursos`, { headers: h }).catch(() => ({ data: [] })),
-          axios.get(`http://localhost:8080/api/v1/secciones/ciclo/2026-II`, { headers: h }).catch(() => ({ data: [] }))
+          axios.get(`${API_BASE}/cuotas/alumno/${idAlum}`, { headers: h }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/carreras`, { headers: h }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/cursos`, { headers: h }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/secciones/ciclo/2026-II`, { headers: h }).catch(() => ({ data: [] }))
         ]);
 
         if (!isMounted) return;
@@ -90,7 +91,7 @@ const MatriculaEnLinea = () => {
 
     try {
       const peticiones = seleccionados.map(idSec => 
-        axios.post('http://localhost:8080/api/v1/matriculas/automatricula', {
+        axios.post(`${API_BASE}/matriculas/automatricula`, {
           idAlumno: alumnoId,
           idSeccion: parseInt(idSec),
           montoPago: 350.00

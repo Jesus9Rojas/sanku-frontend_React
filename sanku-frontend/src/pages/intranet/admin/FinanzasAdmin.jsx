@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Wallet, CheckCheck, HandCoins, AlertCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 // Configuración Premium de SweetAlert2 para Finanzas
 const customSwal = Swal.mixin({
@@ -23,7 +24,7 @@ const FinanzasAdmin = () => {
 
   const recargarFinanzas = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/api/v1/cuotas/todas', { headers: getHeaders() });
+      const res = await axios.get(`${API_BASE}/cuotas/todas`, { headers: getHeaders() });
       setCuotas(res.data);
     } catch {
       sileo.error({ title: "Error", description: "No se pudieron recargar los datos financieros." });
@@ -35,7 +36,7 @@ const FinanzasAdmin = () => {
     
     const cargarFinanzasIniciales = async () => {
       try {
-        const res = await axios.get('http://localhost:8080/api/v1/cuotas/todas', { headers: getHeaders() });
+        const res = await axios.get(`${API_BASE}/cuotas/todas`, { headers: getHeaders() });
         if (isMounted) setCuotas(res.data);
       } catch {
         sileo.error({ title: "Error de Conexión", description: "No se conectó al módulo de finanzas." });
@@ -59,7 +60,7 @@ const FinanzasAdmin = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.post('http://localhost:8080/api/v1/pagos/pagar', {
+          await axios.post(`${API_BASE}/pagos/pagar`, {
             idCuota: idCuota,
             monto: monto,
             metodoPago: 'EFECTIVO'

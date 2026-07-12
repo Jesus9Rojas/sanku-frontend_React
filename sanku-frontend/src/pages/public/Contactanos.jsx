@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Phone, Mail, MapPin, Send } from 'lucide-react';
+import { API_BASE } from '../../utils/api';
 
 export const Contactanos = () => {
   const [programas, setProgramas] = useState([]);
@@ -10,7 +11,7 @@ export const Contactanos = () => {
   useEffect(() => {
     const fetchProgramas = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/v1/carreras');
+        const response = await fetch(`${API_BASE}/carreras`);
         if (response.ok) {
           const data = await response.json();
           setProgramas(data.filter(c => c.estado === true));
@@ -28,7 +29,7 @@ export const Contactanos = () => {
     e.preventDefault();
     setEnviando(true);
     try {
-      const response = await fetch('http://localhost:8080/api/v1/mensajes', {
+      const response = await fetch(`${API_BASE}/mensajes`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData)
       });
       if (response.ok) {

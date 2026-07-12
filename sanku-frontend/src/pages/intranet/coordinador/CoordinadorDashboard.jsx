@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { sileo } from 'sileo';
 import Swal from 'sweetalert2';
+import { API_BASE } from '../../../utils/api';
 
 const customSwal = Swal.mixin({
   customClass: {
@@ -48,7 +49,7 @@ const CoordinadorDashboard = () => {
     let isMounted = true;
     const cargarNotificaciones = async () => {
       try {
-        const res = await axios.get('http://localhost:8080/api/v1/notificaciones/coordinador', {
+        const res = await axios.get(`${API_BASE}/notificaciones/coordinador`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         if (isMounted) setNotificaciones(res.data);

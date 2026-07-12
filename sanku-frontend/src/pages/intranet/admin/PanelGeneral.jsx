@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Users, BookOpen, Wallet, Inbox } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
-import 'chart.js/auto'; // Registra Chart.js automáticamente
+import 'chart.js/auto'; 
 import { Link } from 'react-router-dom';
+import { API_BASE } from '../../../utils/api';
 
 const PanelGeneral = () => {
   const [metricas, setMetricas] = useState({ alumnos: 0, docentes: 0, ingresos: 0, pendientes: 0 });
@@ -15,7 +16,7 @@ const PanelGeneral = () => {
     const headers = { Authorization: `Bearer ${token}` };
 
     // 1. Cargar Métricas Superiores
-    axios.get('http://localhost:8080/api/v1/reportes/dashboard-admin', { headers })
+    axios.get(`${API_BASE}/reportes/dashboard-admin`, { headers })
       .then(res => {
         setMetricas({
           alumnos: res.data.totalAlumnos || 0,
@@ -26,7 +27,7 @@ const PanelGeneral = () => {
       }).catch(err => console.error("Error métricas", err));
 
     // 2. Cargar Gráfico de Matrículas
-    axios.get('http://localhost:8080/api/v1/reportes/matriculas-chart', { headers })
+    axios.get(`${API_BASE}/reportes/matriculas-chart`, { headers })
       .then(res => {
         const labels = res.data.map(d => d.mes || d.Mes);
         const totales = res.data.map(d => d.total || d.Total);
@@ -45,7 +46,7 @@ const PanelGeneral = () => {
       });
 
     // 3. Cargar Preview de Trámites SAE
-    axios.get('http://localhost:8080/api/v1/solicitudes/pendientes', { headers })
+    axios.get(`${API_BASE}/solicitudes/pendientes`, { headers })
       .then(res => {
         const pendientes = res.data.filter(s => s.estado === 'PENDIENTE');
         setSaeRecientes(pendientes.slice(0, 3));

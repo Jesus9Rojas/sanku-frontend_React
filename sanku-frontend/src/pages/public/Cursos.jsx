@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { API_BASE } from '../../utils/api';
 
-// Subcomponente para manejar el estado de las pestañas individualmente por curso
 const CursoCard = ({ curso }) => {
   const [activeTab, setActiveTab] = useState('contenido');
 
@@ -60,7 +60,7 @@ export const Cursos = () => {
   useEffect(() => {
     const fetchCursos = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/v1/carreras');
+        const response = await fetch(`${API_BASE}/carreras`);
         if (response.ok) {
           const data = await response.json();
           setCursos(data.filter(c => c.tipo === 'CURSO_CORTO' && c.estado === true));

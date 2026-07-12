@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Search, GraduationCap } from 'lucide-react';
 import { sileo } from 'sileo';
 import Swal from 'sweetalert2';
+import { API_BASE } from '../../../utils/api';
 
 const customSwal = Swal.mixin({
   customClass: {
@@ -21,7 +22,7 @@ const Rendimiento = () => {
 
   useEffect(() => {
     let isMounted = true;
-    axios.get('http://localhost:8080/api/v1/reportes/rendimiento', { headers: getHeaders() })
+    axios.get(`${API_BASE}/reportes/rendimiento`, { headers: getHeaders() })
       .then(res => { if (isMounted) setAlumnos(res.data); })
       .catch(() => sileo.error({ title: "Error", description: "No se pudo cargar el rendimiento" }))
       .finally(() => { if (isMounted) setCargando(false); });

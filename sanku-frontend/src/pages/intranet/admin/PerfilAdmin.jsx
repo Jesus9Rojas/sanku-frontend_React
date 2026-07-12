@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ShieldCheck, Mail, CreditCard, UserCircle } from 'lucide-react';
+import { API_BASE } from '../../../utils/api';
 
 const PerfilAdmin = () => {
   const [admin, setAdmin] = useState(null);
@@ -9,7 +10,7 @@ const PerfilAdmin = () => {
 
   useEffect(() => {
     const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-    axios.get('http://localhost:8080/api/v1/usuarios', { headers })
+    axios.get(`${API_BASE}/usuarios`, { headers })
       .then(res => {
         const found = res.data.find(u => u.idUsuario == usuarioId || u.id == usuarioId);
         if (found) setAdmin(found);

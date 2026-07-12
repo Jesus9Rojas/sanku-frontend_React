@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { GraduationCap, CheckCircle2, FileSignature, ArrowRight, ArrowLeft } from 'lucide-react';
+import { API_BASE } from '../../utils/api';
 
 export const Admision = () => {
   const [paso, setPaso] = useState(1);
@@ -16,7 +17,7 @@ export const Admision = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/v1/carreras');
+        const response = await fetch(`${API_BASE}/carreras`);
         if (response.ok) {
           const data = await response.json();
           setCarreras(data.filter(c => c.tipo === 'CARRERA' && c.estado === true));
@@ -58,7 +59,7 @@ export const Admision = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:8080/api/v1/postulantes', {
+      const response = await fetch(`${API_BASE}/postulantes`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
       });
       if (response.ok) {

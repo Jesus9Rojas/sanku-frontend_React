@@ -1,6 +1,8 @@
-export const API_BASE = 'http://localhost:8080/api/v1';
+export const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-export const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+export const authHeaders = () => ({
+  Authorization: `Bearer ${localStorage.getItem('token')}`
+});
 
 export const descargarArchivo = async (path, nombreSugerido) => {
   const res = await fetch(`${API_BASE}${path}`, { headers: authHeaders() });

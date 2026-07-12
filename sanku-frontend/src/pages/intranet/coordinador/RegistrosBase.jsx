@@ -3,6 +3,7 @@ import axios from 'axios';
 import { UserPlus, BookPlus, Save } from 'lucide-react';
 import { sileo } from 'sileo';
 import Swal from 'sweetalert2';
+import { API_BASE } from '../../../utils/api';
 
 const RegistrosBase = () => {
   const [carreras, setCarreras] = useState([]);
@@ -15,7 +16,7 @@ const RegistrosBase = () => {
 
   useEffect(() => {
     let isMounted = true;
-    axios.get('http://localhost:8080/api/v1/carreras', { headers: getHeaders() })
+    axios.get(`${API_BASE}/carreras`, { headers: getHeaders() })
       .then(res => {
         if (isMounted) {
           setCarreras(res.data.filter(c => c.tipo === 'CARRERA' && c.estado === true));
@@ -28,7 +29,7 @@ const RegistrosBase = () => {
     e.preventDefault();
     setGuardandoD(true);
     try {
-      await axios.post('http://localhost:8080/api/v1/docentes/registro', formDocente, { headers: getHeaders() });
+      await axios.post(`${API_BASE}/docentes/registro`, formDocente, { headers: getHeaders() });
       sileo.success({ title: "Éxito", description: "Docente registrado. Clave inicial: DNI." });
       setFormDocente({ dni: '', nombres: '', apellidos: '', correo: '', especialidad: '' });
     } catch (error) {
@@ -40,7 +41,7 @@ const RegistrosBase = () => {
     e.preventDefault();
     setGuardandoC(true);
     try {
-      await axios.post('http://localhost:8080/api/v1/cursos', formCurso, { headers: getHeaders() });
+      await axios.post(`${API_BASE}/cursos`, formCurso, { headers: getHeaders() });
       sileo.success({ title: "Curso Creado", description: `El curso ${formCurso.nombre} ha sido guardado.` });
       setFormCurso({ carreraId: '', nombre: '', creditos: 3, descripcionInformativa: '' });
     } catch (error) {

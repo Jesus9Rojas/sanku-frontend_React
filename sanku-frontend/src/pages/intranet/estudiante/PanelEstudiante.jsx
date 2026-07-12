@@ -29,16 +29,16 @@ const PanelEstudiante = () => {
       try {
         const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
         
-        const resPerfil = await axios.get(`http://localhost:8080/api/v1/alumnos/perfil/${usuarioId}`, { headers });
+        const resPerfil = await axios.get(`${API_BASE}/alumnos/perfil/${usuarioId}`, { headers });
         const dataPerfil = resPerfil.data;
         const alumnoId = dataPerfil.idAlumno;
         const miCarrera = dataPerfil.nombreCarrera;
 
         const [resPagos, resCarreras, resCursos, resSecciones, resAnuncios] = await Promise.all([
-          axios.get(`http://localhost:8080/api/v1/cuotas/alumno/${alumnoId}`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`http://localhost:8080/api/v1/carreras`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`http://localhost:8080/api/v1/cursos`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`http://localhost:8080/api/v1/secciones/ciclo/${getCicloActual()}`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/cuotas/alumno/${alumnoId}`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/carreras`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/cursos`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/secciones/ciclo/${getCicloActual()}`, { headers }).catch(() => ({ data: [] })),
           axios.get(`${API_BASE}/anuncios/alumno/${alumnoId}`, { headers: authHeaders() }).catch(() => ({ data: [] }))
         ]);
 

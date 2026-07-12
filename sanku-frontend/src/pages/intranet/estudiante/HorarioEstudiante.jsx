@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Clock, Users, AlertTriangle } from 'lucide-react';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 const coloresCursos = ['#2563eb', '#ea580c', '#0d9488', '#9333ea', '#e11d48', '#2563eb'];
 const diasCabecera = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -23,13 +24,13 @@ const HorarioEstudiante = () => {
 
       try {
         const h = getHeaders();
-        const resPerfil = await axios.get(`http://localhost:8080/api/v1/alumnos/perfil/${usuarioId}`, { headers: h });
+        const resPerfil = await axios.get(`${API_BASE}/alumnos/perfil/${usuarioId}`, { headers: h });
         const miCarrera = resPerfil.data.nombreCarrera;
 
         const [resCarreras, resCursos, resSecciones] = await Promise.all([
-          axios.get(`http://localhost:8080/api/v1/carreras`, { headers: h }),
-          axios.get(`http://localhost:8080/api/v1/cursos`, { headers: h }),
-          axios.get(`http://localhost:8080/api/v1/secciones/ciclo/2026-I`, { headers: h })
+          axios.get(`${API_BASE}/carreras`, { headers: h }),
+          axios.get(`${API_BASE}/cursos`, { headers: h }),
+          axios.get(`${API_BASE}/secciones/ciclo/2026-I`, { headers: h })
         ]);
 
         if (!isMounted) return;

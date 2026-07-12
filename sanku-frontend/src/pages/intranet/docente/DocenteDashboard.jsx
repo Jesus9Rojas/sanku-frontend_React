@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { sileo } from 'sileo';
 import Swal from 'sweetalert2';
+import { API_BASE } from '../../../utils/api';
 
 const customSwal = Swal.mixin({
   customClass: {
@@ -40,7 +41,7 @@ const DocenteDashboard = () => {
   const recargarNotificaciones = useCallback(async (idDocente) => {
     try {
       const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-      const res = await axios.get(`http://localhost:8080/api/v1/alertas/docente/${idDocente}`, { headers });
+      const res = await axios.get(`${API_BASE}/alertas/docente/${idDocente}`, { headers });
       setAlertas(res.data);
     } catch { /* Silencioso */ }
   }, []);
@@ -53,7 +54,7 @@ const DocenteDashboard = () => {
       try {
         const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
         // 1. Obtener el perfil real del docente para saber su ID interno
-        const resPerfil = await axios.get(`http://localhost:8080/api/v1/docentes/perfil/${usuarioId}`, { headers });
+        const resPerfil = await axios.get(`${API_BASE}/docentes/perfil/${usuarioId}`, { headers });
         const idDocenteReal = resPerfil.data.idDocente;
         
         if (isMounted) {
@@ -78,7 +79,7 @@ const DocenteDashboard = () => {
     if (event) event.stopPropagation();
     try {
       const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-      await axios.put(`http://localhost:8080/api/v1/alertas/${idAlerta}/resolver`, {}, { headers });
+      await axios.put(`${API_BASE}/alertas/${idAlerta}/resolver`, {}, { headers });
       const docenteId = localStorage.getItem('docenteId');
       if (docenteId) recargarNotificaciones(docenteId);
     } catch (error) {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Clock, BookOpen, X } from 'lucide-react';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 const SupervisionDocente = () => {
   const [docentes, setDocentes] = useState([]);
@@ -16,7 +17,7 @@ const SupervisionDocente = () => {
 
   useEffect(() => {
     let isMounted = true;
-    axios.get('http://localhost:8080/api/v1/docentes', { headers: getHeaders() })
+    axios.get(`${API_BASE}/docentes`, { headers: getHeaders() })
       .then(res => { if (isMounted) setDocentes(res.data); })
       .catch(() => sileo.error({ title: "Error", description: "No se cargaron los docentes." }))
       .finally(() => { if (isMounted) setCargando(false); });
@@ -28,7 +29,7 @@ const SupervisionDocente = () => {
     setModalAbierto(true);
     setCargandoHorario(true);
     try {
-      const res = await axios.get(`http://localhost:8080/api/v1/secciones/docente/${docente.idDocente}`, { headers: getHeaders() });
+      const res = await axios.get(`${API_BASE}/secciones/docente/${docente.idDocente}`, { headers: getHeaders() });
       setCargaHoraria(res.data);
     } catch {
       setCargaHoraria([]);

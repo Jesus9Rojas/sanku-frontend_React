@@ -6,6 +6,7 @@ import { FileDown, FileText, Activity } from 'lucide-react';
 import { sileo } from 'sileo';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { API_BASE } from '../../../utils/api';
 
 const ReportesBI = () => {
   const [finanzas, setFinanzas] = useState(null);
@@ -22,21 +23,21 @@ const ReportesBI = () => {
     let isMounted = true;
     const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
 
-    axios.get('http://localhost:8080/api/v1/reportes/financiero', { headers }).then(res => {
+    axios.get(`${API_BASE}/reportes/financiero`, { headers }).then(res => {
       if (!isMounted) return;
       const labels = res.data.map(d => d.mes || d.Mes);
       const data = res.data.map(d => parseFloat(d.ingreso || d.total || 0));
       setFinanzas({ labels, datasets: [{ label: 'Ingresos', data, backgroundColor: '#22c55e', borderRadius: 4 }] });
     }).catch(() => {});
 
-    axios.get('http://localhost:8080/api/v1/reportes/matriculas-chart', { headers }).then(res => {
+    axios.get(`${API_BASE}/reportes/matriculas-chart`, { headers }).then(res => {
       if (!isMounted) return;
       const labels = res.data.map(d => d.mes || d.Mes);
       const data = res.data.map(d => d.total || d.Total);
       setMatriculas({ labels, datasets: [{ label: 'Matrículas', data, borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.2)', fill: true, tension: 0.4 }] });
     }).catch(() => {});
 
-    axios.get('http://localhost:8080/api/v1/reportes/semaforo-global', { headers }).then(res => {
+    axios.get(`${API_BASE}/reportes/semaforo-global`, { headers }).then(res => {
       if (!isMounted) return;
       let aTiempo = 0, porVencer = 0, retrasado = 0;
       res.data.forEach(item => {
@@ -49,7 +50,7 @@ const ReportesBI = () => {
       setSemaforo({ labels: ['Al Día', 'Por Vencer', 'Retrasados'], datasets: [{ data: [aTiempo, porVencer, retrasado], backgroundColor: ['#22c55e', '#facc15', '#ef4444'], borderWidth: 0 }] });
     }).catch(() => {});
 
-    axios.get('http://localhost:8080/api/v1/reportes/rendimiento', { headers }).then(res => {
+    axios.get(`${API_BASE}/reportes/rendimiento`, { headers }).then(res => {
       if (isMounted) setAlertas(res.data);
     }).catch(() => {});
 

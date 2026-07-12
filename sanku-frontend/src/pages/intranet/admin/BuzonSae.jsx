@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Search } from 'lucide-react'; // Eliminados los iconos que no se usaban en el HTML
 import Swal from 'sweetalert2';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 const BuzonSae = () => {
   const [solicitudes, setSolicitudes] = useState([]);
@@ -12,7 +13,7 @@ const BuzonSae = () => {
   const recargarSAE = async () => {
     try {
       const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-      const res = await axios.get('http://localhost:8080/api/v1/solicitudes/pendientes', { headers });
+      const res = await axios.get(`${API_BASE}/solicitudes/pendientes`, { headers });
       setSolicitudes(res.data);
     } catch { 
       // Eliminamos la (e) para que el linter no se queje
@@ -26,7 +27,7 @@ const BuzonSae = () => {
     const cargarSaeInicial = async () => {
       try {
         const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-        const res = await axios.get('http://localhost:8080/api/v1/solicitudes/pendientes', { headers });
+        const res = await axios.get(`${API_BASE}/solicitudes/pendientes`, { headers });
         if (isMounted) setSolicitudes(res.data);
       } catch {
         // Eliminamos la (e)
@@ -76,7 +77,7 @@ const BuzonSae = () => {
   const enviarRespuesta = async (id, estado, obs) => {
     try {
       const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-      await axios.put(`http://localhost:8080/api/v1/solicitudes/${id}/responder`, { estado, observacion: obs }, { headers });
+      await axios.put(`${API_BASE}/solicitudes/${id}/responder`, { estado, observacion: obs }, { headers });
       sileo.success({ title: `Trámite ${estado}` });
       recargarSAE();
     } catch { 

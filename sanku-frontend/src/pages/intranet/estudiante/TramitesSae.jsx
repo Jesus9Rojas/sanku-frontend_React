@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FolderOpen, Plus, Eye, X, FileSignature, Clock } from 'lucide-react';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 const TramitesSae = () => {
   const [tramites, setTramites] = useState([]);
@@ -18,7 +19,7 @@ const TramitesSae = () => {
   const recargarTramites = async () => {
     try {
       const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-      const resTramites = await axios.get(`http://localhost:8080/api/v1/solicitudes/mis-solicitudes/${usuarioId}`, { headers });
+      const resTramites = await axios.get(`${API_BASE}/solicitudes/mis-solicitudes/${usuarioId}`, { headers });
       setTramites(resTramites.data);
     } catch (error) {
       console.error(error);
@@ -37,11 +38,11 @@ const TramitesSae = () => {
         const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
         
         const [resTramites, resPerfil, resCarreras, resCursos, resSecciones] = await Promise.all([
-          axios.get(`http://localhost:8080/api/v1/solicitudes/mis-solicitudes/${usuarioId}`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`http://localhost:8080/api/v1/alumnos/perfil/${usuarioId}`, { headers }).catch(() => ({ data: {} })),
-          axios.get(`http://localhost:8080/api/v1/carreras`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`http://localhost:8080/api/v1/cursos`, { headers }).catch(() => ({ data: [] })),
-          axios.get(`http://localhost:8080/api/v1/secciones/ciclo/2026-I`, { headers }).catch(() => ({ data: [] }))
+          axios.get(`${API_BASE}/solicitudes/mis-solicitudes/${usuarioId}`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/alumnos/perfil/${usuarioId}`, { headers }).catch(() => ({ data: {} })),
+          axios.get(`${API_BASE}/carreras`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/cursos`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/secciones/ciclo/2026-I`, { headers }).catch(() => ({ data: [] }))
         ]);
 
         if (!isMounted) return;
@@ -87,7 +88,7 @@ const TramitesSae = () => {
         descripcion: form.descripcion
       };
       const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-      await axios.post('http://localhost:8080/api/v1/solicitudes', payload, { headers });
+      await axios.post(`${API_BASE}/solicitudes`, payload, { headers });
       sileo.success({ title: "Éxito", description: "Solicitud enviada correctamente." });
       setModalNuevo(false);
       recargarTramites();

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Layers, CalendarCheck, Clock, Users } from 'lucide-react';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 const diasSemana = ["", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
@@ -17,7 +18,7 @@ const PanelPrincipal = () => {
       if (!docenteId) return; // Si aún no ha cargado el ID, espera.
       try {
         const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-        const res = await axios.get(`http://localhost:8080/api/v1/secciones/docente/${docenteId}`, { headers });
+        const res = await axios.get(`${API_BASE}/secciones/docente/${docenteId}`, { headers });
         if (isMounted) setSecciones(res.data);
       } catch {
         sileo.error({ title: "Error", description: "No se pudo cargar la agenda." });

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { Mail, CreditCard, Calendar, BookOpen, ShieldCheck, User, Lock, KeyRound, ArrowRight, X, CheckCircle2 } from 'lucide-react';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 const PerfilEstudiante = () => {
   const [alumno, setAlumno] = useState({});
@@ -21,7 +22,7 @@ const PerfilEstudiante = () => {
     let isMounted = true;
     const userId = localStorage.getItem("usuarioId");
     
-    axios.get(`http://localhost:8080/api/v1/alumnos/perfil/${userId}`, { headers: getHeaders() })
+    axios.get(`${API_BASE}/alumnos/perfil/${userId}`, { headers: getHeaders() })
       .then(res => { if (isMounted) setAlumno(res.data); })
       .catch(() => sileo.error({ title: "Error", description: "No se pudo cargar la información del perfil." }))
       .finally(() => { if (isMounted) setCargando(false); });
@@ -40,7 +41,7 @@ const PerfilEstudiante = () => {
   const solicitarCodigoCorreo = async () => {
     setProcesandoPass(true);
     try {
-      await axios.post(`http://localhost:8080/api/v1/usuarios/${alumno.usuario.idUsuario}/enviar-codigo`, {}, { headers: getHeaders() });
+      await axios.post(`${API_BASE}/usuarios/${alumno.usuario.idUsuario}/enviar-codigo`, {}, { headers: getHeaders() });
       sileo.success({ title: "Código Enviado", description: "Revisa tu bandeja de entrada o spam." });
       setPasoPass(2);
     } catch {
@@ -57,7 +58,7 @@ const PerfilEstudiante = () => {
     }
     setProcesandoPass(true);
     try {
-      await axios.post(`http://localhost:8080/api/v1/usuarios/${alumno.usuario.idUsuario}/verificar-codigo`, { codigo: codigoIngresado }, { headers: getHeaders() });
+      await axios.post(`${API_BASE}/usuarios/${alumno.usuario.idUsuario}/verificar-codigo`, { codigo: codigoIngresado }, { headers: getHeaders() });
       setPasoPass(3);
     } catch {
       sileo.error({ title: "Código Incorrecto", description: "El código ingresado no es válido o ya expiró." });
@@ -77,7 +78,7 @@ const PerfilEstudiante = () => {
     }
     setProcesandoPass(true);
     try {
-      await axios.put(`http://localhost:8080/api/v1/usuarios/${alumno.usuario.idUsuario}/password`, 
+      await axios.put(`${API_BASE}/usuarios/${alumno.usuario.idUsuario}/password`, 
         { nuevaPassword: nuevaPass }, 
         { headers: getHeaders() }
       );

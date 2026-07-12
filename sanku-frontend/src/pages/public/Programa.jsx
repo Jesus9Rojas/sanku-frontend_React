@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Download, GraduationCap } from 'lucide-react';
+import { API_BASE } from '../../utils/api';
 
 const disenoCarreras = {
   "ADMINISTRACION": { icono: "fa-chart-column", badgeText: "Negocios", badgeColor: "bg-[#e50914]", bgImage: "url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80')" },
@@ -24,7 +25,7 @@ export const Programa = () => {
   useEffect(() => {
     const fetchPrograma = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/v1/carreras');
+        const response = await fetch(`${API_BASE}/carreras`);
         if (response.ok) {
           const data = await response.json();
           const carreraActual = data.find(c => c.idCarrera == id);

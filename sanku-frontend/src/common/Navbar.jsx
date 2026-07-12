@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ChevronDown, Menu } from 'lucide-react';
+import { API_BASE } from '../utils/api';
 
 export const Navbar = () => {
   const location = useLocation();
@@ -11,7 +12,7 @@ export const Navbar = () => {
   useEffect(() => {
     const fetchProgramas = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/v1/carreras');
+        const response = await fetch(`${API_BASE}/carreras`);
         if (response.ok) {
           const data = await response.json();
           setProgramas(data.filter(c => c.tipo === 'CARRERA' && c.estado === true));

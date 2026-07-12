@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Globe, UserPlus, ArrowRight, ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
 import { sileo } from 'sileo';
 import Swal from 'sweetalert2';
+import { API_BASE } from '../../../utils/api';
 
 const customSwal = Swal.mixin({
   customClass: {
@@ -30,7 +31,7 @@ const MatriculasAdmision = () => {
 
   const recargarPostulantes = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/api/v1/postulantes/pendientes', { headers: getHeaders() });
+      const res = await axios.get(`${API_BASE}/postulantes/pendientes`, { headers: getHeaders() });
       setPostulantes(res.data);
     } catch {
       sileo.error({ title: "Error", description: "No se pudieron recargar los postulantes." });
@@ -44,8 +45,8 @@ const MatriculasAdmision = () => {
       try {
         const headersLocal = { Authorization: `Bearer ${localStorage.getItem('token')}` };
         const [resP, resC] = await Promise.all([
-          axios.get('http://localhost:8080/api/v1/postulantes/pendientes', { headers: headersLocal }),
-          axios.get('http://localhost:8080/api/v1/carreras', { headers: headersLocal })
+          axios.get(`${API_BASE}/postulantes/pendientes`, { headers: headersLocal }),
+          axios.get(`${API_BASE}/carreras`, { headers: headersLocal })
         ]);
         
         if (isMounted) {
@@ -66,7 +67,7 @@ const MatriculasAdmision = () => {
   const aprobarPostulante = async (id) => {
     setAprobandoId(id);
     try {
-      const res = await axios.post(`http://localhost:8080/api/v1/postulantes/${id}/aprobar`, {}, { headers: getHeaders() });
+      const res = await axios.post(`${API_BASE}/postulantes/${id}/aprobar`, {}, { headers: getHeaders() });
       sileo.success({ title: "Aprobado", description: res.data || "El postulante ahora es alumno." });
       recargarPostulantes();
     } catch (error) {
@@ -92,7 +93,7 @@ const MatriculasAdmision = () => {
     if (confirmacion.isConfirmed) {
       setRechazandoId(id);
       try {
-        const res = await axios.post(`http://localhost:8080/api/v1/postulantes/${id}/rechazar`, {}, { headers: getHeaders() });
+        const res = await axios.post(`${API_BASE}/postulantes/${id}/rechazar`, {}, { headers: getHeaders() });
         sileo.success({ title: "Rechazado", description: res.data || "El postulante ha sido rechazado." });
         recargarPostulantes(); // Desaparecerá de la lista
       } catch (error) {
@@ -107,7 +108,7 @@ const MatriculasAdmision = () => {
   const registrarAlumnoManual = async () => {
     setRegistrando(true);
     try {
-      const res = await axios.post('http://localhost:8080/api/v1/alumnos/registro-manual', formManual, { headers: getHeaders() });
+      const res = await axios.post(`${API_BASE}/alumnos/registro-manual`, formManual, { headers: getHeaders() });
       setRegistroExitoso(res.data);
     } catch (error) {
       customSwal.fire("Error al registrar", error.response?.data?.message || "Datos duplicados o inválidos", "error");

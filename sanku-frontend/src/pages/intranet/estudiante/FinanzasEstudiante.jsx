@@ -3,6 +3,7 @@ import axios from 'axios';
 import {CheckCircle2, AlertCircle, History, Lock } from 'lucide-react';
 import { sileo } from 'sileo';
 import Swal from 'sweetalert2';
+import { API_BASE } from '../../../utils/api';
 
 const customSwal = Swal.mixin({
   customClass: {
@@ -23,7 +24,7 @@ const FinanzasEstudiante = () => {
   const recargarFinanzas = async () => {
     try {
       const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-      const res = await axios.get(`http://localhost:8080/api/v1/cuotas/alumno/${alumnoId}`, { headers });
+      const res = await axios.get(`${API_BASE}/cuotas/alumno/${alumnoId}`, { headers });
       const cuotas = res.data;
       setPagadas(cuotas.filter(c => c.estado === 'PAGADO'));
       setPendientes(cuotas.filter(c => c.estado === 'PENDIENTE' || c.estado === 'VENCIDO').sort((a,b) => new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento)));
@@ -42,7 +43,7 @@ const FinanzasEstudiante = () => {
       }
       try {
         const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-        const res = await axios.get(`http://localhost:8080/api/v1/cuotas/alumno/${alumnoId}`, { headers });
+        const res = await axios.get(`${API_BASE}/cuotas/alumno/${alumnoId}`, { headers });
         if (isMounted) {
           const cuotas = res.data;
           setPagadas(cuotas.filter(c => c.estado === 'PAGADO'));
@@ -83,7 +84,7 @@ const FinanzasEstudiante = () => {
         try {
           const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
           const peticiones = cuotasSeleccionadas.map(c => 
-            axios.post(`http://localhost:8080/api/v1/pagos/pagar?idCuota=${c.idCuota}&monto=${c.montoTotal}&metodoPago=TARJETA_CREDITO`, {}, { headers })
+            axios.post(`${API_BASE}/pagos/pagar?idCuota=${c.idCuota}&monto=${c.montoTotal}&metodoPago=TARJETA_CREDITO`, {}, { headers })
           );
           await Promise.all(peticiones);
           return true;

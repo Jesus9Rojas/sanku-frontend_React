@@ -7,6 +7,7 @@ import {
   LogOut, ChevronLeft, ChevronRight, 
 } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { API_BASE } from '../../../utils/api';
 
 const customSwal = Swal.mixin({
   customClass: {
@@ -39,7 +40,7 @@ const EstudianteDashboard = () => {
 
   const recargarNotificaciones = useCallback(async () => {
     try {
-      const res = await axios.get(`http://localhost:8080/api/v1/solicitudes/mis-solicitudes/${usuarioId}`, { headers: getHeaders() });
+      const res = await axios.get(`${API_BASE}/solicitudes/mis-solicitudes/${usuarioId}`, { headers: getHeaders() });
       const leidas = JSON.parse(localStorage.getItem(`notif_leidas_${usuarioId}`)) || [];
       const respondidos = res.data.filter(s => s.estado !== "PENDIENTE" && !leidas.includes(s.idSolicitud));
       setNotificaciones(respondidos);
@@ -54,7 +55,7 @@ const EstudianteDashboard = () => {
 
     const inicializarAlumno = async () => {
       try {
-        const resPerfil = await axios.get(`http://localhost:8080/api/v1/alumnos/perfil/${usuarioId}`, { headers: getHeaders() });
+        const resPerfil = await axios.get(`${API_BASE}/alumnos/perfil/${usuarioId}`, { headers: getHeaders() });
         if (isMounted) {
           localStorage.setItem('alumnoId', resPerfil.data.idAlumno);
           recargarNotificaciones();

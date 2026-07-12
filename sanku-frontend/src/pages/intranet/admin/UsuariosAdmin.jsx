@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Search, Plus, Edit2, Trash2, ShieldCheck, X, User } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { sileo } from 'sileo';
+import { API_BASE } from '../../../utils/api';
 
 // Configuración de SweetAlert2 Premium
 const customSwal = Swal.mixin({
@@ -27,7 +28,7 @@ const UsuariosAdmin = () => {
 
   const recargarTabla = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/api/v1/usuarios', { headers });
+      const res = await axios.get(`${API_BASE}/usuarios`, { headers });
       setUsuarios(res.data);
     } catch { 
       sileo.error({ title: "Error", description: "No se pudieron cargar los usuarios" }); 
@@ -38,7 +39,7 @@ const UsuariosAdmin = () => {
     let isMounted = true;
     const cargarUsuariosIniciales = async () => {
       try {
-        const res = await axios.get('http://localhost:8080/api/v1/usuarios', { headers });
+        const res = await axios.get(`${API_BASE}/usuarios`, { headers });
         if (isMounted) setUsuarios(res.data);
       } catch {
         sileo.error({ title: "Error", description: "No se pudieron cargar los usuarios" });
@@ -70,10 +71,10 @@ const UsuariosAdmin = () => {
     setGuardando(true);
     try {
       if (form.idUsuario) {
-        await axios.put(`http://localhost:8080/api/v1/usuarios/${form.idUsuario}`, form, { headers });
+        await axios.put(`${API_BASE}/usuarios/${form.idUsuario}`, form, { headers });
         sileo.success({ title: "Actualizado", description: "El usuario ha sido modificado exitosamente." });
       } else {
-        await axios.post('http://localhost:8080/api/v1/usuarios', form, { headers });
+        await axios.post(`${API_BASE}/usuarios`, form, { headers });
         sileo.success({ title: "Creado", description: "Usuario creado. La clave es su DNI." });
       }
       setModalAbierto(false);
@@ -96,7 +97,7 @@ const UsuariosAdmin = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`http://localhost:8080/api/v1/usuarios/${id}`, { headers });
+          await axios.delete(`${API_BASE}/usuarios/${id}`, { headers });
           sileo.success({ title: "Eliminado", description: "El usuario fue borrado del sistema." });
           recargarTabla();
         } catch { 
